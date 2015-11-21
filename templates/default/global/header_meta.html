@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+<meta http-equiv="X-UA-Compatible" content="{{X_UA_COMPATIBLE}}" />
+<meta name="renderer" content="webkit" />
+<title>{{sys.Si.SiteName}}</title>
+<meta name="keywords" content="{{sys.Si.Keywords}}" />
+<meta name="description" content="{{sys.Si.SiteDesc}}"  />
+<link href="{{sys.Si.Static}}/front/css/{{sys.Ps.UiStyle}}/img/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+<link rel="stylesheet" type="text/css" href="{{sys.Si.Static}}/front/css/bootstrap.css" />
+<link rel="stylesheet" type="text/css" href="{{sys.Si.Static}}/front/css/icon.css" />
+<link rel="stylesheet" type="text/css" href="{{sys.Si.Static}}/front/js/plug/style.css" />
+{% for import_css in import_css_files %}<link href="{{import_css}}" rel="stylesheet" type="text/css" />{% endfor %}
+{% if sys.Ps.UiStyle != "default" %}<link href="{{sys.Si.Static}}/front/css/{{sys.Ps.UiStyle}}/{{sys.Ps.UiStyle}}.css" rel="stylesheet" type="text/css" />{% endif %}
+
+</head>
+<noscript unselectable="on" id="noscript">
+    <div class="aw-404 aw-404-wrap container">
+        <img src="{{sys.Si.Static}}/common/no-js.jpg">
+        <p>你的浏览器禁用了JavaScript, 请开启后刷新浏览器获得更好的体验!</p>
+    </div>
+</noscript>

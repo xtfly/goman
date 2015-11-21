@@ -1,0 +1,41 @@
+<div class="aw-footer-wrap">
+	<div class="aw-footer">
+		Copyright © {% now "Y" %}{{sys.Si.IcpBeian}}<span class="hidden-xs"> - {{sys.Si.IcpBeian}}, All Rights Reserved</span>
+
+		<span class="hidden-xs">Powered By <a href="http://www.egolang.cn/?copyright" target="blank">GoMan</a></span>
+
+		{% if is_mobile %}
+			<div class="container">
+				<div class="row">
+					<p align="center">版本切换: <b>PC 版</b> | <a href="m/ignore_ua_check-FALSE">手机版</a></p>
+				</div>
+			</div>
+		{% endif %}
+	</div>
+</div>
+
+<a class="aw-back-top hidden-xs" href="javascript:;" onclick="$.scrollTo(1, 600, {queue:true});"><i class="icon icon-up"></i></a>
+
+<script type="text/javascript">
+var CSRF_TOKEN ="{{ csrf_token }}";
+var G_INDEX_SCRIPT = "";
+var G_SITE_NAME = "{{sys.Si.SiteName}}";
+var G_BASE_URL = "";
+var G_STATIC_URL = "{{sys.Si.Static}}";
+var G_UPLOAD_URL = "{{sys.Si.UploadUrl}}";
+var G_USER_ID = "{{uid}}";
+var G_USER_NAME = "{{uname}}";
+var G_UPLOAD_ENABLE = "{{sys.Cs.UploadEnable}}";
+var G_UNREAD_NOTIFICATION = 0;
+var G_NOTIFICATION_INTERVAL = 100000;
+var G_CAN_CREATE_TOPIC = "";
+var G_ADVANCED_EDITOR_ENABLE = "Y";
+</script>
+<script type="text/javascript" src="{{sys.Si.Static}}/front/js/all.js"></script>
+{% for import_js in import_js_files %}<script type="text/javascript" src="{{import_js}}"></script>{% endfor %}
+<!--[if lte IE 8]>
+	<script type="text/javascript" src="{{sys.Si.Static}}/front/js/respond.js"></script>
+<![endif]-->
+{{sys.Sc.StatisticCode}}
+</body>
+</html>

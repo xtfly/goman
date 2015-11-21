@@ -24,6 +24,10 @@ var (
 	// app work path
 	AppPath = ""
 
+	//
+	X_UA_COMPATIBLE = "IE=edge,Chrome=1"
+	VERSION_BUILD   = "20151118"
+
 	// System setting
 	SysSetting *models.GlobalSetting
 
@@ -43,9 +47,21 @@ func init() {
 }
 
 func BootStrap() {
+	//
 	models.ConnectDB()
+	//
 	SysSetting = models.NewGlobalSetting()
-	SysSetting.LoadAll()
+	if ok := SysSetting.LoadAll(); !ok {
+		panic("Load system setting failed.")
+	}
+
+	if SysSetting.Ps.UiStyle == "" {
+		SysSetting.Ps.UiStyle = "default"
+	}
+
+	if SysSetting.Si.Static == "" {
+		SysSetting.Si.Static = "/static"
+	}
 }
 
 func getWebCfg() {

@@ -40,7 +40,7 @@ func InitDB(c *kits.Crypto) {
 	}
 	webcfg = web
 
-	sqllog := webcfg.Key("sqlon").String() // log the sql string
+	sqllog := webcfg.Key("sqllog").String() // log the sql string
 	if "on" == sqllog {
 		orm.Debug = true
 	}

@@ -1,0 +1,52 @@
+{% include "../global/header.html" %}
+<div class="aw-container-wrap">
+	<div class="container">
+		<div class="row">
+			<div class="aw-content-wrap clearfix">
+				<div class="col-sm-12 col-md-9 aw-main-content">
+					<!-- 新消息通知 -->
+					<div class="aw-mod aw-notification-box hide" id="index_notification">
+						<div class="mod-head common-head">
+							<h2>
+								<span class="pull-right"><a href="account/setting/privacy/#notifications" class="text-color-999"><i class="icon icon-setting"></i>通知设置</a></span>
+								{% if uid %}
+								<i class="icon icon-bell"></i>新通知<em class="badge badge-important" name="notification_unread_num">{{u.NotificationUnread}}</em>
+								{% endif %}
+							</h2>
+						</div>
+						<div class="mod-body">
+							<ul id="notification_list"></ul>
+						</div>
+						<div class="mod-footer clearfix">
+							<a href="javascript:;" onclick="AWS.Message.read_notification(false, 0, false);" class="pull-left btn btn-mini btn-default">我知道了</a>
+							<a href="notifications/" class="pull-right btn btn-mini btn-success">查看所有</a>
+						</div>
+					</div>
+					<!-- end 新消息通知 -->
+					<a name="c_contents"></a>
+					<div class="aw-mod clearfix">
+						<div class="mod-head common-head">
+							<h2 id="main_title">最新动态</h2>
+						</div>
+
+						<div class="mod-body aw-feed-list clearfix" id="main_contents"></div>
+
+						<div class="mod-footer">
+							<!-- 加载更多内容 -->
+							<a id="bp_more" class="aw-load-more-content" data-page="0">
+								<span>更多</span>
+							</a>
+							<!-- end 加载更多内容 -->
+						</div>
+					</div>
+				</div>
+				<!-- 侧边栏 -->
+				<div class="col-sm-12 col-md-3 aw-side-bar hidden-xs hidden-sm">
+				</div>
+				<!-- end 侧边栏 -->
+			</div>
+		</div>
+	</div>
+</div>
+
+{% include "../global/footer.html" %}

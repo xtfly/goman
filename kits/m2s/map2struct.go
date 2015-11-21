@@ -210,6 +210,10 @@ func convertStringToValue(s string, fv reflect.Value, kind reflect.Kind) error {
 			fv.SetBool(true)
 		case "0":
 			fv.SetBool(false)
+		case "y":
+			fv.SetBool(true)
+		case "n":
+			fv.SetBool(false)
 		default:
 			return fmt.Errorf("invalid bool: value=%v", s)
 		}
@@ -219,21 +223,21 @@ func convertStringToValue(s string, fv reflect.Value, kind reflect.Kind) error {
 	if reflect.Int <= kind && kind <= reflect.Int64 {
 		i, err := strconv.ParseInt(s, 10, 64)
 		if err != nil {
-			return fmt.Errorf("invalid int: value=%v", s)
+			return fmt.Errorf("invalid int: value=%v, err=%s", s, err.Error())
 		}
 		fv.SetInt(i)
 
 	} else if reflect.Uint <= kind && kind <= reflect.Uint64 {
 		i, err := strconv.ParseUint(s, 10, 64)
 		if err != nil {
-			return fmt.Errorf("invalid uint: value=%v", s)
+			return fmt.Errorf("invalid uint: value=%v, err=%s", s, err.Error())
 		}
 		fv.SetUint(i)
 
 	} else if reflect.Float32 == kind || kind == reflect.Float64 {
 		i, err := strconv.ParseFloat(s, 64)
 		if err != nil {
-			return fmt.Errorf("invalid float: value=%v", s)
+			return fmt.Errorf("invalid float: value=%v, err=%s", s, err.Error())
 		}
 		fv.SetFloat(i)
 

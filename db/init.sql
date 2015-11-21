@@ -146,3 +146,9 @@ INSERT INTO `users_group` (`id`, `type`, `custom`, `name`, `repu_lower`, `repu_h
 (8, 1, 0, '高级会员', 500, 1000, 1, '"publish_question":1,"edit_question":1,"edit_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"publish_comment":1'),
 (9, 1, 0, '核心会员', 1000, 999999, 1, '"publish_question":1,"edit_question":1,"edit_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"publish_comment":1'),
 (10, 0, 0, '游客', 0, 0, 0, '"visit_site":1,"visit_explore":1,"search_avail":1,"visit_question":1,"visit_topic":1,"visit_feature":1,"visit_people":1,"visit_chapter":5,"answer_show":1');
+
+INSERT INTO `category`(`title`,`type`) VALUES
+('默认分类', 'question');
+
+INSERT INTO `nav_menu`(`title`,`description`,`type`,`type_id`) VALUES
+('默认分类', '默认分类描述', 'category', 1);

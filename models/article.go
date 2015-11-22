@@ -7,19 +7,19 @@ import (
 )
 
 type Article struct {
-	Id          int64     `json:"id" orm:"pk;auto"`                               //ID
-	Uid         int64     `json:"uid" orm:"index"`                                //
-	Title       string    `json:"title" orm:""`                                   //
-	Category    *Category `json:"category_id" orm:"rel(one);column(category_id)"` //
-	Comments    int64     `json:"comments" orm:"default(0);index"`                //
-	Views       int64     `json:"views" orm:"default(0);index"`                   //
-	Votes       int64     `json:"votes" orm:"default(0)"`                         //
-	AddTime     time.Time `json:"add_time" orm:"type(datetime);auto_now_add"`     //
-	HasAttach   bool      `json:"has_attach" orm:"default(0);index"`              //
-	Lock        bool      `json:"lock" orm:"default(0);index"`                    //
-	IsRecommend bool      `json:"is_recommend" orm:"default(0)"`                  //
-	ChapterId   int64     `json:"chapter_id" orm:"index"`                         //
-	Sort        int16     `json:"sort" orm:"index"`                               //
+	Id          int64     `json:"id" orm:"pk;auto"`                                    //ID
+	Uid         int64     `json:"uid" orm:"index"`                                     //
+	Title       string    `json:"title" orm:""`                                        //
+	Category    *Category `json:"category_id" orm:"rel(one);column(category_id);null"` //
+	Comments    int64     `json:"comments" orm:"default(0);index"`                     //
+	Views       int64     `json:"views" orm:"default(0);index"`                        //
+	Votes       int64     `json:"votes" orm:"default(0)"`                              //
+	AddTime     time.Time `json:"add_time" orm:"type(datetime);auto_now_add"`          //
+	HasAttach   bool      `json:"has_attach" orm:"default(0);index"`                   //
+	Lock        bool      `json:"lock" orm:"default(0);index"`                         //
+	IsRecommend bool      `json:"is_recommend" orm:"default(0)"`                       //
+	ChapterId   int64     `json:"chapter_id" orm:"index"`                              //
+	Sort        int16     `json:"sort" orm:"index"`                                    //
 
 	Message       string `json:"message" orm:"type(text);null"`        //
 	TitleFullText string `json:"title_fulltext" orm:"type(text);null"` //

@@ -1,3 +1,4 @@
+DELETE FROM `system_setting`;
 INSERT INTO `system_setting` (`name`, `value`) VALUES
 ('site_name', 'GoMan社区'),
 ('description', 'GoMan社区 社交化知识社区'),
@@ -94,7 +95,7 @@ INSERT INTO `system_setting` (`name`, `value`) VALUES
 ('enable_help_center', 'N'),
 ('ucenter_path', '');
 
-
+DELETE FROM `jobs`;
 INSERT INTO `jobs` (`id`, `name`) VALUES
 (1, '销售'),
 (2, '市场/市场拓展/公关'),
@@ -135,6 +136,7 @@ INSERT INTO `jobs` (`id`, `name`) VALUES
 (37, '在校学生'),
 (38, '其他');
 
+DELETE FROM `users_group`;
 INSERT INTO `users_group` (`id`, `type`, `custom`, `name`, `repu_lower`, `repu_higer`, `repu_factor`, `permission`) VALUES
 (1, 0, 0, '超级管理员', 0, 0, 5, '"is_admin":1,"is_moderator":1,"publish_question":1,"edit_question":1,"edit_topic":1,"manage_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_article":1,"edit_question_topic":1,"publish_comment":1'),
 (2, 0, 0, '前台管理员', 0, 0, 4, '"is_moderator":1,"publish_question":1,"edit_question":1,"edit_topic":1,"manage_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_article":1,"edit_question_topic":1,"publish_comment":1'),
@@ -147,8 +149,10 @@ INSERT INTO `users_group` (`id`, `type`, `custom`, `name`, `repu_lower`, `repu_h
 (9, 1, 0, '核心会员', 1000, 999999, 1, '"publish_question":1,"edit_question":1,"edit_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"publish_comment":1'),
 (10, 0, 0, '游客', 0, 0, 0, '"visit_site":1,"visit_explore":1,"search_avail":1,"visit_question":1,"visit_topic":1,"visit_feature":1,"visit_people":1,"visit_chapter":5,"answer_show":1');
 
+DELETE FROM `category`;
 INSERT INTO `category`(`title`,`type`) VALUES
 ('默认分类', 'question');
 
-INSERT INTO `nav_menu`(`title`,`description`,`type`,`type_id`) VALUES
+DELETE FROM `nav_menu`;
+INSERT INTO `nav_menu`(`title`,`desc`,`type`,`type_id`) VALUES
 ('默认分类', '默认分类描述', 'category', 1);

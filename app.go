@@ -5,7 +5,6 @@ import (
 	"github.com/go-macaron/cache"
 	"github.com/go-macaron/captcha"
 	"github.com/go-macaron/csrf"
-	"github.com/go-macaron/i18n"
 	"github.com/go-macaron/pongo2"
 	"github.com/go-macaron/session"
 	"github.com/xtfly/goman/boot"
@@ -26,10 +25,10 @@ func main() {
 	m.Use(captcha.Captchaer(captcha.Options{Width: 120, Height: 40}))
 	m.Use(macaron.Static("static", macaron.StaticOptions{Prefix: "/static"}))
 	m.Use(pongo2.Pongoer())
-	m.Use(i18n.I18n(i18n.Options{
-		Langs: []string{"en-US", "zh-CN"},
-		Names: []string{"English", "简体中文"},
-	}))
+	//m.Use(i18n.I18n(i18n.Options{
+	//	Langs: []string{"en-US", "zh-CN"},
+	//	Names: []string{"English", "简体中文"},
+	//}))
 	m.Use(spider.SpiderFunc())
 	//m.Use(auth.Auther())
 

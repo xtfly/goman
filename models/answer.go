@@ -6,7 +6,7 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-//
+//回答列表
 type Answer struct {
 	Id       int64     `json:"id" orm:"pk;auto"`
 	Qid      int64     `json:"qid" orm:"index"`                                      // 问题id
@@ -21,14 +21,14 @@ type Answer struct {
 	Ip                string `json:"ip" orm:"null;size(32)"`                    //
 	HasAttach         bool   `json:"has_attach" orm:"default(0)"`               //是否存在附件
 	ForceFold         bool   `json:"force_fold" orm:"default(0)"`               //强制折叠
-	Anonymous         bool   `json:"anonymous" orm:"default(0);index"`          //强制折叠
+	Anonymous         bool   `json:"anonymous" orm:"default(0);index"`          //
 
 	PublishSource string    `json:"publish_source" orm:"size(16);null;index"`         //回答内容
 	Content       string    `json:"type" orm:"type(text);null"`                       //回答内容
 	AddTime       time.Time `json:"add_time" orm:"auto_now_add;type(datetime);index"` //添加时间
 }
 
-//
+//回答评论列表
 type AnswerComments struct {
 	Id     int64   `json:"id" orm:"pk;auto"`
 	Uid    int64   `json:"uid" orm:"index"`                // 用户ID
@@ -39,7 +39,7 @@ type AnswerComments struct {
 	AddTime time.Time `json:"add_time" orm:"auto_now_add;type(datetime);index"` //添加时间
 }
 
-//
+//回答不感兴趣表
 type AnswerUninterested struct {
 	Id     int64   `json:"id" orm:"pk;auto"`
 	Uid    int64   `json:"uid" orm:"index"`                     // 用户ID
@@ -49,7 +49,7 @@ type AnswerUninterested struct {
 	Time     time.Time `json:"time" orm:"auto_now_add;type(datetime)"` //添加时间
 }
 
-//
+//回答感谢列表
 type AnswerThanks struct {
 	Id     int64   `json:"id" orm:"pk;auto"`
 	Uid    int64   `json:"uid" orm:"index"`                     // 用户ID
@@ -59,7 +59,7 @@ type AnswerThanks struct {
 	Time     time.Time `json:"time" orm:"auto_now_add;type(datetime)"` //添加时间
 }
 
-//
+//回答赞成列表
 type AnswerVote struct {
 	Id         int64 `json:"id" orm:"pk;auto"`
 	VoteUid    int64 `json:"vote_uid" orm:"index"`         // 用户ID

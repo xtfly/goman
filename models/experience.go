@@ -6,10 +6,10 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-// 工作经历
+//工作经历
 type WorkExperience struct {
-	Id   int64  `json:"id" orm:"pk;auto"`
-	User *Users `json:"uid" orm:"null;rel(one)"` // OneToOne relation
+	Id  int64 `json:"id" orm:"pk;auto"`           //
+	Uid int64 `json:"uid" orm:"default(0);index"` //
 
 	StartYear   time.Time `json:"start_year" orm:"type(date)"` // 开始年份
 	EndYear     time.Time `json:"end_year" orm:"type(date)"`   // 开始年份
@@ -21,8 +21,8 @@ type WorkExperience struct {
 
 //教育经历
 type EduExperience struct {
-	Id   int64  `json:"id" orm:"pk;auto"`
-	User *Users `json:"uid" orm:"null;rel(one)"` // OneToOne relation
+	Id  int64 `json:"id" orm:"pk;auto"`           //
+	Uid int64 `json:"uid" orm:"default(0);index"` //
 
 	EduYears   time.Time `json:"education_years" orm:"type(date)"` // 入学年份
 	SchoolName string    `json:"school_name" orm:"null"`           // 学校名

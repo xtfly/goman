@@ -246,6 +246,30 @@ func (gss *GlobalSetting) UpdateSiteInfo() bool {
 	return gss.update(m2s.Struct2Map(gss.Si))
 }
 
+func (gss *GlobalSetting) UpdateRegisterAccess() bool {
+	return gss.update(m2s.Struct2Map(gss.Ra))
+}
+
+func (gss *GlobalSetting) UpdateSiteCapibility() bool {
+	return gss.update(m2s.Struct2Map(gss.Sc))
+}
+
+func (gss *GlobalSetting) UpdateUserAuthority() bool {
+	return gss.update(m2s.Struct2Map(gss.Ua))
+}
+
+func (gss *GlobalSetting) UpdateIntegralReputation() bool {
+	return gss.update(m2s.Struct2Map(gss.Ir))
+}
+
+func (gss *GlobalSetting) UpdateContextSetting() bool {
+	return gss.update(m2s.Struct2Map(gss.Cs))
+}
+
+func (gss *GlobalSetting) UpdatePageSetting() bool {
+	return gss.update(m2s.Struct2Map(gss.Ps))
+}
+
 func (gss *GlobalSetting) update(kvs map[string]interface{}) bool {
 	if len(kvs) <= 0 {
 		log.Errorf("Save data to SystemSetting failed, map size is zero.")

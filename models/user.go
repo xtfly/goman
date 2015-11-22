@@ -21,11 +21,14 @@ type Users struct {
 	Password string      `json:"-"`                             //加密之后的密文
 	Group    *UsersGroup `json:"group_id" orm:"rel(one);index"` //用户组
 
+	// 基本信息
 	Avatar     string    `json:"avatar" orm:"null;index;unique"`             //头像文件
 	Gender     int8      `json:"gender" valid:"Range(0,2)" orm:"default(0)"` //0：Unknown, 1: Male， 2：Female
 	Birthday   time.Time `json:"birthday" orm:"null;type(date)"`             //生日
 	Province   string    `json:"province" orm:"null"`                        //省
 	City       string    `json:"city" orm:"null"`                            //市
+	Intro      string    `json:"introduction" orm:"null"`                    //个人简介
+	Signature  string    `json:"signature" orm:"null"`                       //个人签名
 	Job        *Jobs     `json:"job_id" orm:"null;rel(one)"`                 //职业ID
 	RegTime    time.Time `json:"reg_time" orm:"auto_now_add;type(datetime)"` //注册时间
 	Updated    time.Time `json:"updated" orm:"type(datetime)"`               //资料更新时间
@@ -36,6 +39,7 @@ type Users struct {
 	OnlineTime int64     `json:"online_time" orm:"default(0)"`               //在线时间
 	LastActive time.Time `json:"last_active" orm:"type(datetime);null"`      //最后登录时间
 
+	// 统计
 	NotificationUnread  int       `json:"notification_unread" orm:"default(0)"`             //未读系统通知
 	InboxUnread         int       `json:"inbox_unread" orm:"default(0)"`                    //未读短信息
 	InboxRecv           int8      `json:"inbox_recv" orm:"default(0)"`                      //0-所有人可以发给我,1-我关注的人
@@ -55,15 +59,17 @@ type Users struct {
 	Integral            int       `json:"integral" orm:"default(0)"`                        //积分
 	DraftCount          int       `json:"draft_count" orm:"default(0)"`                     //
 
+	// 安全
 	Forbidden       bool      `json:"forbidden" orm:"default(0)"`                 //是否禁止用户
 	FirstLogin      bool      `json:"first_login" orm:"default(1)"`               //首次登录标记
 	ValidEmail      bool      `json:"valid_email" orm:"default(0)"`               //邮箱验证
-	Verified        string    `json:"-" orm:"null"`                               //
+	Verified        string    `json:"-" orm:"null"`                               //验证码
 	WeiboVist       bool      `json:"weibo_visit" orm:"default(1)"`               //微博允许访问
 	CommonEmail     string    `json:"common_email" orm:"null"`                    //常用邮箱
 	UrlToken        string    `json:"url_token" orm:"index;null"`                 //个性网址
 	UrlTokenUpdated time.Time `json:"url_token_update" orm:"type(datetime);null"` //个性网址更新
 
+	// 配置
 	DefTimeZone  string `json:"default_timezone" orm:"null"`
 	EmailSetting string `json:"email_settings" orm:"null"`
 

@@ -12,7 +12,7 @@
 <link rel="stylesheet" type="text/css" href="{{sys.Si.Static}}/front/css/bootstrap.css" />
 <link rel="stylesheet" type="text/css" href="{{sys.Si.Static}}/front/css/icon.css" />
 <link rel="stylesheet" type="text/css" href="{{sys.Si.Static}}/front/js/plug/style.css" />
-{% for import_css in import_css_files %}<link href="{{import_css}}" rel="stylesheet" type="text/css" />{% endfor %}
+{% for css in css_files %}<link href="{{css}}" rel="stylesheet" type="text/css" />{% endfor %}
 {% if sys.Ps.UiStyle != "default" %}<link href="{{sys.Si.Static}}/front/css/{{sys.Ps.UiStyle}}/{{sys.Ps.UiStyle}}.css" rel="stylesheet" type="text/css" />{% endif %}
 
 </head>

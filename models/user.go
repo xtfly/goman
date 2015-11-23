@@ -1,9 +1,12 @@
 package models
 
 import (
+	"strings"
 	"time"
 
+	"github.com/Unknwon/com"
 	"github.com/astaxie/beego/orm"
+	"github.com/xtfly/goman/kits"
 )
 
 const (
@@ -13,13 +16,14 @@ const (
 )
 
 type Users struct {
-	Id       int64       `json:"uid" orm:"pk;auto"`             //用户的 UID
-	UserName string      `json:"user_name" orm:"index;unique"`  //用户名
-	Email    string      `json:"email" orm:"index"`             //EMAIL
-	Mobile   string      `json:"mobile" orm:"index"`            //用户手机
-	Salt     string      `json:"-"`                             //加密的盐值
-	Password string      `json:"-"`                             //加密之后的密文
-	Group    *UsersGroup `json:"group_id" orm:"rel(one);index"` //用户组
+	Id        int64       `json:"uid" orm:"pk;auto"`                 //用户的 UID
+	UserName  string      `json:"user_name" orm:"index;unique"`      //用户名
+	Email     string      `json:"email" orm:"index"`                 //EMAIL
+	Mobile    string      `json:"mobile" orm:"index"`                //用户手机
+	Salt      string      `json:"-"`                                 //加密的盐值
+	Password  string      `json:"-"`                                 //加密之后的密文
+	Group     *UsersGroup `json:"group_id" orm:"rel(one);index"`     //用户组
+	RepuGroup int64       `json:"reputation_group" orm:"default(0)"` //威望对应组
 
 	// 基本信息
 	Avatar     string    `json:"avatar" orm:"null;index;unique"`             //头像文件
@@ -29,12 +33,12 @@ type Users struct {
 	City       string    `json:"city" orm:"null"`                            //市
 	Intro      string    `json:"introduction" orm:"null"`                    //个人简介
 	Signature  string    `json:"signature" orm:"null"`                       //个人签名
-	Job        *Jobs     `json:"job_id" orm:"null;rel(one)"`                 //职业ID
+	JobId      int64     `json:"job_id" orm:"default(0)"`                    //职业ID
 	RegTime    time.Time `json:"reg_time" orm:"auto_now_add;type(datetime)"` //注册时间
-	Updated    time.Time `json:"updated" orm:"type(datetime)"`               //资料更新时间
-	RegIp      string    `json:"reg_ip"`                                     //注册IP
+	Updated    time.Time `json:"updated" orm:"type(datetime);null"`          //资料更新时间
+	RegIp      string    `json:"reg_ip" orm:"null"`                          //注册IP
 	LastLogin  time.Time `json:"last_login" orm:"type(datetime);null"`       //最后登录时间
-	LastIp     string    `json:"last_ip"`                                    //最后登录的IP
+	LastIp     string    `json:"last_ip" orm:"null"`                         //最后登录的IP
 	LoginCount int64     `json:"login_times" orm:"default(0)"`               //登录次数
 	OnlineTime int64     `json:"online_time" orm:"default(0)"`               //在线时间
 	LastActive time.Time `json:"last_active" orm:"type(datetime);null"`      //最后登录时间
@@ -76,19 +80,64 @@ type Users struct {
 	//RecentTopics string `json:"recent_topics" orm:"size(1024)"`
 }
 
+var users = new(Users)
+
 func init() {
-	orm.RegisterModel(new(Users))
+	orm.RegisterModel(users)
 }
 
-func (m *Users) Existed() bool {
+//检查用户名,电子邮件地址是否已经存在
+func UserExistedByName(name string) bool {
 	cond := orm.NewCondition()
-	if m.UserName != "" {
-		cond.Or("UserName", m.UserName).Or("UrlToken", m.UserName)
-	}
-
-	if m.Email != "" {
-		cond.And("Email", m.Email)
-	}
-
+	cond.Or("UserName", name).Or("UrlToken", name)
 	return NewTr().Query("Users").SetCond(cond).Exist()
+}
+
+func UserExistedByEmail(email string) bool {
+	return NewTr().Query("Users").Filter("Email", email).Exist()
+}
+
+func UserExistedById(id int64) bool {
+	return NewTr().Query("Users").Filter("Id", id).Exist()
+}
+
+func (m *Users) Insert(t *Transaction) (int64, bool) {
+	if t == nil {
+		t = NewTr()
+	}
+	return t.Insert(m)
+}
+
+func (m *Users) Register(t *Transaction) (int64, bool) {
+	m.LastIp = m.RegIp
+
+	m.Group = &UsersGroup{Id: 3} // TODO 未验证会员
+	m.Password, m.Salt = kits.GenPasswd(m.Password, 8)
+
+	// 生成用户的URL
+	m.UrlToken = kits.GenHashStr(m.UserName, 4)
+	m.UrlTokenUpdated = time.Now()
+
+	// 默认的Email设置
+	m.EmailSetting = syscfg.Ra.EmailSettings
+	m.InvitationAvailable = syscfg.Ra.NewerInviteNum
+	m.RepuGroup = 5 // TODO
+	// update_notification_setting_fields
+
+	m.FirstLogin = true
+
+	id, ok := m.Insert(t)
+	if !ok {
+		return id, ok
+	}
+
+	// 增加关注关系表
+	fuids := strings.Split(syscfg.Ra.DefFocusUids, ",")
+	for _, fuid := range fuids {
+		if !AddUserFollow(t, id, com.StrTo(fuid).MustInt64()) {
+			return id, false
+		}
+	}
+
+	return id, ok
 }

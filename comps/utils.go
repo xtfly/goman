@@ -18,29 +18,32 @@ func HTML(c *macaron.Context, sc int, tn string) {
 }
 
 func DefCss(c *macaron.Context) {
-	c.Data["import_css_files"] = []string{
-		boot.SysSetting.Si.Static + "/front/css/" + boot.SysSetting.Ps.UiStyle + "/common.css",
-		boot.SysSetting.Si.Static + "/front/css/" + boot.SysSetting.Ps.UiStyle + "/link.css",
+	s := boot.SysSetting.Si.Static
+	u := boot.SysSetting.Ps.UiStyle
+	c.Data["css_files"] = []string{
+		s + "/front/css/" + u + "/common.css",
+		s + "/front/css/" + u + "/link.css",
 	}
 }
 
 func AddCss(c *macaron.Context, css ...string) {
 	for _, f := range css {
-		c.Data["import_css_files"] = append(c.Data["import_css_files"].([]string), boot.SysSetting.Si.Static+"/front/css/"+f)
+		c.Data["css_files"] = append(c.Data["css_files"].([]string), boot.SysSetting.Si.Static+"/front/css/"+f)
 	}
 }
 
 func DefJs(c *macaron.Context) {
-	c.Data["import_js_files"] = []string{
-		boot.SysSetting.Si.Static + "/front/js/goman.js",
-		boot.SysSetting.Si.Static + "/front/js/template.js",
-		boot.SysSetting.Si.Static + "/front/js/app.js",
+	s := boot.SysSetting.Si.Static
+	c.Data["js_files"] = []string{
+		s + "/front/js/goman.js",
+		s + "/front/js/template.js",
+		s + "/front/js/app.js",
 	}
 }
 
 func AddJs(c *macaron.Context, js ...string) {
 	for _, f := range js {
-		c.Data["import_js_files"] = append(c.Data["import_js_files"].([]string), boot.SysSetting.Si.Static+"/front/js/"+f)
+		c.Data["js_files"] = append(c.Data["js_files"].([]string), boot.SysSetting.Si.Static+"/front/js/"+f)
 	}
 }
 
@@ -52,15 +55,15 @@ func DefCxt(c *macaron.Context, uid int64) {
 
 //格式化系统返回消息
 //格式化系统返回的消息 json 数据包给前端进行处理
-type RestErrResp struct {
+type RestResp struct {
 	Rsm   string `json:"rsm"`
 	Errno int    `json:"errno"`
 	Err   string `json:"err"`
 }
 
-func NewRestErrResp(rsm string, errno int, err string) *RestErrResp {
-	return &RestErrResp{
-		Rsm:   rsm,
+func NewRestErrResp(errno int, err string) *RestResp {
+	return &RestResp{
+		Rsm:   "",
 		Errno: errno,
 		Err:   err,
 	}

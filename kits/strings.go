@@ -3,6 +3,8 @@ package kits
 import (
 	"regexp"
 	"strings"
+
+	"github.com/Unknwon/com"
 )
 
 func IsDigit(str string) bool {
@@ -22,7 +24,8 @@ func IsChinese(str string) bool {
 }
 
 func IsEmail(str string) bool {
-	return regexp.MustCompile(`^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$`).MatchString(str)
+	//return regexp.MustCompile(`^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$`).MatchString(str)
+	return com.IsEmail(str)
 }
 
 // 是否包含敏感词

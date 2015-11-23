@@ -31,7 +31,7 @@ var G_CAN_CREATE_TOPIC = "";
 var G_ADVANCED_EDITOR_ENABLE = "Y";
 </script>
 <script type="text/javascript" src="{{sys.Si.Static}}/front/js/all.js"></script>
-{% for import_js in import_js_files %}<script type="text/javascript" src="{{import_js}}"></script>{% endfor %}
+{% for js in js_files %}<script type="text/javascript" src="{{js}}"></script>{% endfor %}
 <!--[if lte IE 8]>
 	<script type="text/javascript" src="{{sys.Si.Static}}/front/js/respond.js"></script>
 <![endif]-->

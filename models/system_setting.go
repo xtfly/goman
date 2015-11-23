@@ -10,6 +10,11 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+var (
+	// 给 pakcage models访问
+	syscfg *GlobalSetting
+)
+
 // site global information
 type SiteInfo struct {
 	SiteName  string `map:"site_name"`   //网站名称
@@ -238,6 +243,14 @@ func (gss *GlobalSetting) LoadAll() bool {
 
 	s, _ := json.Marshal(gss)
 	log.Printf("System setting=%s", string(s))
+
+	syscfg = gss
+	if gss.Ps.UiStyle == "" {
+		gss.Ps.UiStyle = "default"
+	}
+	if gss.Si.Static == "" {
+		gss.Si.Static = "/static"
+	}
 	return true
 }
 
@@ -286,5 +299,7 @@ func (gss *GlobalSetting) update(kvs map[string]interface{}) bool {
 			return false
 		}
 	}
+
+	syscfg = gss
 	return true
 }

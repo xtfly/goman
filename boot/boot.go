@@ -40,8 +40,8 @@ func init() {
 	macaron.SetConfig(getCfgFile())
 	cfg = macaron.Config()
 
-	getWebCfg()
-	getSecureCfg()
+	readWebCfg()
+	readSecureCfg()
 
 	models.InitDB(crypto)
 }
@@ -54,17 +54,9 @@ func BootStrap() {
 	if ok := SysSetting.LoadAll(); !ok {
 		panic("Load system setting failed.")
 	}
-
-	if SysSetting.Ps.UiStyle == "" {
-		SysSetting.Ps.UiStyle = "default"
-	}
-
-	if SysSetting.Si.Static == "" {
-		SysSetting.Si.Static = "/static"
-	}
 }
 
-func getWebCfg() {
+func readWebCfg() {
 	web, err := cfg.GetSection("web")
 	if err != nil {
 		panic(err)
@@ -74,7 +66,7 @@ func getWebCfg() {
 	WebPort = web.Key("port").MustInt(8080)
 }
 
-func getSecureCfg() {
+func readSecureCfg() {
 	secure, err := cfg.GetSection("secure")
 	if err != nil {
 		panic(err)

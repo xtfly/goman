@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Unknwon/com"
 	"github.com/go-macaron/captcha"
 	"github.com/go-macaron/csrf"
 	"github.com/go-macaron/session"
@@ -18,17 +19,16 @@ import (
 func ApiCheckUserName(c *macaron.Context) {
 	un := strings.TrimSpace(c.QueryEscape("username"))
 	if err, ok := CheckUsernameChar(un); !ok {
-		c.JSON(200, comps.NewRestErrResp("", -1, err))
+		c.JSON(200, comps.NewRestErrResp(-1, err))
 		return
 	}
 
-	u := &models.Users{UserName: un}
-	if CheckUsernameSensitiveWords(un) || u.Existed() {
-		c.JSON(200, comps.NewRestErrResp("", -1, "用户名已被注册"))
+	if CheckUsernameSensitiveWords(un) || models.UserExistedByName(un) {
+		c.JSON(200, comps.NewRestErrResp(-1, "用户名已被注册"))
 		return
 	}
 
-	c.JSON(200, comps.NewRestErrResp("", 1, ""))
+	c.JSON(200, comps.NewRestErrResp(1, ""))
 }
 
 type SignupForm struct {
@@ -46,10 +46,11 @@ type SignupForm struct {
 	Agree     bool   `form:"agreement_chk"`
 }
 
-// POST /api/acount/signup/
+// POST /api/account/signup/
 func ApiUserSignup(c *macaron.Context, f SignupForm, cpt *captcha.Captcha, x csrf.CSRF, s *session.Flash) {
 	if x.ValidToken(f.CsrfToken) {
-		c.JSON(200, comps.NewRestErrResp("", -1, "非法的跨站请求"))
+		c.JSON(200, comps.NewRestErrResp(-1, "非法的跨站请求"))
+		return
 	}
 
 	// if input invalid, will store user_name & email
@@ -61,48 +62,61 @@ func ApiUserSignup(c *macaron.Context, f SignupForm, cpt *captcha.Captcha, x csr
 	ra := boot.SysSetting.Ra
 	switch ra.RegisterType {
 	case models.RegTypeClose:
-		c.JSON(200, comps.NewRestErrResp("", -1, "本站目前关闭注册"))
+		c.JSON(200, comps.NewRestErrResp(-1, "本站目前关闭注册"))
 		return
 	case models.RegTypeInvite:
 		if f.ICode == "" {
-			c.JSON(200, comps.NewRestErrResp("", -1, "本站只能通过邀请注册"))
+			c.JSON(200, comps.NewRestErrResp(-1, "本站只能通过邀请注册"))
 		}
 	default:
 		break
 	}
 
 	if !cpt.VerifyReq(c.Req) {
-		c.JSON(200, comps.NewRestErrResp("", -1, "请填写正确的验证码"))
+		c.JSON(200, comps.NewRestErrResp(-1, "请填写正确的验证码"))
 		return
 	}
 
 	if err, ok := CheckUsernameChar(f.Name); !ok {
-		c.JSON(200, comps.NewRestErrResp("", -1, err))
+		c.JSON(200, comps.NewRestErrResp(-1, err))
 		return
 	}
 
-	u := &models.Users{UserName: f.Name}
-	if CheckUsernameSensitiveWords(f.Name) || u.Existed() {
-		c.JSON(200, comps.NewRestErrResp("", -1, "用户名已被注册或包含敏感词或系统保留字"))
+	if CheckUsernameSensitiveWords(f.Name) || models.UserExistedByName(f.Name) {
+		c.JSON(200, comps.NewRestErrResp(-1, "用户名已被注册或包含敏感词或系统保留字"))
 		return
 	}
 
-	u = &models.Users{Email: f.Email}
-	if kits.IsEmail(f.Email) || u.Existed() {
-		c.JSON(200, comps.NewRestErrResp("", -1, "EMail 已经被使用, 或格式不正确"))
+	if kits.IsEmail(f.Email) || models.UserExistedByEmail(f.Email) {
+		c.JSON(200, comps.NewRestErrResp(-1, "EMail 已经被使用, 或格式不正确"))
 		return
 	}
 
 	if len(f.Password) < 6 {
-		c.JSON(200, comps.NewRestErrResp("", -1, "密码长度不符合规则"))
+		c.JSON(200, comps.NewRestErrResp(-1, "密码长度不符合规则"))
 		return
 	}
 
 	if !f.Agree {
-		c.JSON(200, comps.NewRestErrResp("", -1, "你必需同意用户协议才能继续"))
+		c.JSON(200, comps.NewRestErrResp(-1, "你必需同意用户协议才能继续"))
 		return
 	}
 
+	if f.Gender < models.GenderUnknown || f.Gender > models.GenderFemale {
+		c.JSON(200, comps.NewRestErrResp(-1, "非法的性别输入"))
+		return
+	}
+
+	u := &models.Users{}
+	u.UserName = f.Name
+	u.Email = f.Email
+	u.Password = f.Password
+	u.Gender = f.Gender
+	u.JobId = com.StrTo(f.JobId).MustInt64()
+	u.Province = f.Province
+	u.City = f.City
+	u.Signature = f.Signature
+	u.RegIp = c.RemoteAddr()
 }
 
 /*
@@ -231,8 +245,10 @@ func CheckUsernameChar(un string) (string, bool) {
 	}
 
 	unlen := len(un)
-	if unlen < boot.SysSetting.Ra.UsernameLenMin || unlen > boot.SysSetting.Ra.UsernameLenMax {
-		return fmt.Sprintf("用户名长度只在[%d, %d]", boot.SysSetting.Ra.UsernameLenMin, boot.SysSetting.Ra.UsernameLenMax), false
+	min := boot.SysSetting.Ra.UsernameLenMin
+	max := boot.SysSetting.Ra.UsernameLenMax
+	if unlen < min || unlen > max {
+		return fmt.Sprintf("用户名长度只能在[%d,%d]", min, max), false
 	}
 
 	switch boot.SysSetting.Ra.UsernameRule {
@@ -240,15 +256,15 @@ func CheckUsernameChar(un string) (string, bool) {
 		break
 	case models.UserRuleChineseLetterNumUnline:
 		if !kits.IsChineseLetterNumUnline(un) {
-			return fmt.Sprintf("请输入大于[%d,%d]字节的用户名, 允许汉字、字母与数字", boot.SysSetting.Ra.UsernameLenMin, boot.SysSetting.Ra.UsernameLenMax), false
+			return fmt.Sprintf("请输入大于[%d,%d]字节的用户名, 允许汉字、字母与数字", min, max), false
 		}
 	case models.UserRuleLetterNumUnline:
 		if !kits.IsLetterNumUnline(un) {
-			return fmt.Sprintf("请输入[%d,%d]个字母、数字或下划线", boot.SysSetting.Ra.UsernameLenMin, boot.SysSetting.Ra.UsernameLenMax), false
+			return fmt.Sprintf("请输入[%d,%d]个字母、数字或下划线", min, max), false
 		}
 	case models.UserRuleChinese:
 		if !kits.IsChinese(un) {
-			return fmt.Sprintf("请输入[%d,%d]个汉字", boot.SysSetting.Ra.UsernameLenMin/2, boot.SysSetting.Ra.UsernameLenMax/2), false
+			return fmt.Sprintf("请输入[%d,%d]个汉字", min/2, max/2), false
 		}
 	default:
 		break
@@ -257,6 +273,7 @@ func CheckUsernameChar(un string) (string, bool) {
 	return "", true
 }
 
+//检查用户名中是否包含敏感词或用户信息保留字
 func CheckUsernameSensitiveWords(un string) bool {
 	if kits.SensitiveWordExists(un, boot.SysSetting.Cs.SensitiveWords) {
 		return true

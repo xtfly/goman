@@ -44,24 +44,24 @@ type Users struct {
 	LastActive time.Time `json:"last_active" orm:"type(datetime);null"`      //最后登录时间
 
 	// 统计
-	NotificationUnread  int       `json:"notification_unread" orm:"default(0)"`             //未读系统通知
-	InboxUnread         int       `json:"inbox_unread" orm:"default(0)"`                    //未读短信息
+	NotificationUnread  int64     `json:"notification_unread" orm:"default(0)"`             //未读系统通知
+	InboxUnread         int64     `json:"inbox_unread" orm:"default(0)"`                    //未读短信息
 	InboxRecv           int8      `json:"inbox_recv" orm:"default(0)"`                      //0-所有人可以发给我,1-我关注的人
-	FansCount           int       `json:"fans_count" orm:"default(0)"`                      //粉丝数
-	FriendCount         int       `json:"friend_count" orm:"default(0)"`                    //观众数
-	InviteCount         int       `json:"invite_count" orm:"default(0)"`                    //邀请我回答数量
-	ArticleCount        int       `json:"article_count" orm:"default(0)"`                   //文章数量
-	QuestionCount       int       `json:"question_count" orm:"default(0)"`                  //问题数量
-	AnswerCount         int       `json:"answer_count" orm:"default(0)"`                    //回答数量
-	TopicFocusCount     int       `json:"topic_focus_count" orm:"default(0)"`               //关注话题数量
-	InvitationAvailable int       `json:"invitation_available" orm:"default(0)"`            //邀请数量
-	AgreeCount          int       `json:"agree_count" orm:"default(0)"`                     //赞同数量
-	ThanksCount         int       `json:"thanks_count" orm:"default(0)"`                    //感谢数量
-	ViewsCount          int       `json:"views_count" orm:"default(0)"`                     //个人主页查看数量
-	Reputation          int       `json:"reputation" orm:"index;default(0)"`                //威望
+	FansCount           int64     `json:"fans_count" orm:"default(0)"`                      //粉丝数
+	FriendCount         int64     `json:"friend_count" orm:"default(0)"`                    //观众数
+	InviteCount         int64     `json:"invite_count" orm:"default(0)"`                    //邀请我回答数量
+	ArticleCount        int64     `json:"article_count" orm:"default(0)"`                   //文章数量
+	QuestionCount       int64     `json:"question_count" orm:"default(0)"`                  //问题数量
+	AnswerCount         int64     `json:"answer_count" orm:"default(0)"`                    //回答数量
+	TopicFocusCount     int64     `json:"topic_focus_count" orm:"default(0)"`               //关注话题数量
+	InvitationAvailable int64     `json:"invitation_available" orm:"default(0)"`            //邀请数量
+	AgreeCount          int64     `json:"agree_count" orm:"default(0)"`                     //赞同数量
+	ThanksCount         int64     `json:"thanks_count" orm:"default(0)"`                    //感谢数量
+	ViewsCount          int64     `json:"views_count" orm:"default(0)"`                     //个人主页查看数量
+	Reputation          int64     `json:"reputation" orm:"index;default(0)"`                //威望
 	ReputationUpdated   time.Time `json:"reputation_update_time" orm:"type(datetime);null"` //威望更新
-	Integral            int       `json:"integral" orm:"default(0)"`                        //积分
-	DraftCount          int       `json:"draft_count" orm:"default(0)"`                     //
+	Integral            int64     `json:"integral" orm:"default(0)"`                        //积分
+	DraftCount          int64     `json:"draft_count" orm:"default(0)"`                     //
 
 	// 安全
 	Forbidden       bool      `json:"forbidden" orm:"default(0)"`                 //是否禁止用户
@@ -72,10 +72,6 @@ type Users struct {
 	CommonEmail     string    `json:"common_email" orm:"null"`                    //常用邮箱
 	UrlToken        string    `json:"url_token" orm:"index;null"`                 //个性网址
 	UrlTokenUpdated time.Time `json:"url_token_update" orm:"type(datetime);null"` //个性网址更新
-
-	// 配置
-	DefTimeZone  string `json:"default_timezone" orm:"null"`
-	EmailSetting string `json:"email_settings" orm:"null"`
 
 	//RecentTopics string `json:"recent_topics" orm:"size(1024)"`
 }
@@ -101,32 +97,27 @@ func UserExistedById(id int64) bool {
 	return NewTr().Query("Users").Filter("Id", id).Exist()
 }
 
-func (m *Users) Insert(t *Transaction) (int64, bool) {
-	if t == nil {
-		t = NewTr()
-	}
-	return t.Insert(m)
-}
-
-func (m *Users) Register(t *Transaction) (int64, bool) {
+func (m *Users) Add(t *Transaction) (int64, bool) {
 	m.LastIp = m.RegIp
 
-	m.Group = &UsersGroup{Id: 3} // TODO 未验证会员
+	//
 	m.Password, m.Salt = kits.GenPasswd(m.Password, 8)
 
 	// 生成用户的URL
 	m.UrlToken = kits.GenHashStr(m.UserName, 4)
 	m.UrlTokenUpdated = time.Now()
 
-	// 默认的Email设置
-	m.EmailSetting = syscfg.Ra.EmailSettings
 	m.InvitationAvailable = syscfg.Ra.NewerInviteNum
 	m.RepuGroup = 5 // TODO
-	// update_notification_setting_fields
-
 	m.FirstLogin = true
 
-	id, ok := m.Insert(t)
+	// 前面要求对邀请码验证
+	if !syscfg.Ra.RegisterValidType || (syscfg.Ra.RegisterValidType && syscfg.Ra.RegisterType == RegTypeInvite) {
+		m.Group = &UsersGroup{Id: 4}
+	}
+
+	//
+	id, ok := t.Insert(m)
 	if !ok {
 		return id, ok
 	}
@@ -137,6 +128,27 @@ func (m *Users) Register(t *Transaction) (int64, bool) {
 		if !AddUserFollow(t, id, com.StrTo(fuid).MustInt64()) {
 			return id, false
 		}
+	}
+
+	// 初始化积分
+	il := &IntegralLog{
+		Uid:      id,
+		Action:   IntegralRegister,
+		Integral: syscfg.Ir.DefautlIntegral,
+		Note:     "初始资本",
+	}
+	if !il.Add(t) {
+		return id, false
+	}
+
+	// 默认的配置
+	us := &UserSetting{
+		Uid:                 id,
+		EmailSetting:        syscfg.Ra.EmailSettings,
+		NotificationSetting: syscfg.Ra.NotificationSettings,
+	}
+	if _, ok := t.Insert(us); !ok {
+		return id, false
 	}
 
 	return id, ok

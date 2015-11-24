@@ -47,16 +47,17 @@ type SignupForm struct {
 }
 
 // POST /api/account/signup/
-func ApiUserSignup(c *macaron.Context, f SignupForm, cpt *captcha.Captcha, x csrf.CSRF, s *session.Flash) {
-	if x.ValidToken(f.CsrfToken) {
+func ApiUserSignup(c *macaron.Context, f SignupForm, cpt *captcha.Captcha,
+	csrf csrf.CSRF, sf *session.Flash, ss session.Store) {
+	if csrf.ValidToken(f.CsrfToken) {
 		c.JSON(200, comps.NewRestErrResp(-1, "非法的跨站请求"))
 		return
 	}
 
 	// if input invalid, will store user_name & email
 	defer func() {
-		s.Set("email", f.Email)
-		s.Set("user_name", f.Name)
+		sf.Set("email", f.Email)
+		sf.Set("user_name", f.Name)
 	}()
 
 	ra := boot.SysSetting.Ra
@@ -80,6 +81,14 @@ func ApiUserSignup(c *macaron.Context, f SignupForm, cpt *captcha.Captcha, x csr
 	if err, ok := CheckUsernameChar(f.Name); !ok {
 		c.JSON(200, comps.NewRestErrResp(-1, err))
 		return
+	}
+
+	var invitation *models.Invitation
+	if f.ICode != "" {
+		if invitation = models.CheckICodeAvailable(f.ICode); invitation == nil {
+			c.JSON(200, comps.NewRestErrResp(-1, "邀请码无效或与邀请邮箱不一致"))
+			return
+		}
 	}
 
 	if CheckUsernameSensitiveWords(f.Name) || models.UserExistedByName(f.Name) {
@@ -117,124 +126,59 @@ func ApiUserSignup(c *macaron.Context, f SignupForm, cpt *captcha.Captcha, x csr
 	u.City = f.City
 	u.Signature = f.Signature
 	u.RegIp = c.RemoteAddr()
+	u.Group = &models.UsersGroup{Id: 3} // TODO 未验证会员
+	if invitation != nil && f.Email == invitation.Email {
+		u.ValidEmail = true
+		u.Group = &models.UsersGroup{Id: 4} // TODO 验证会员
+	}
+
+	t := models.NewTr()
+	uid, ok := u.Add(t)
+	if !ok {
+		c.JSON(200, comps.NewRestErrResp(-1, "内部系统错误"))
+		return
+	}
+	u.Id = uid
+
+	// 把邀请者加为好友
+	if invitation != nil {
+		if !models.AddUserFollow(t, uid, invitation.Uid) {
+			c.JSON(200, comps.NewRestErrResp(-1, "内部系统错误"))
+			return
+		}
+
+		if !invitation.Active(t, c.RemoteAddr(), uid) {
+			c.JSON(200, comps.NewRestErrResp(-1, "内部系统错误"))
+			return
+		}
+	}
+
+	// 如果不需要email验证
+	if !boot.SysSetting.Ra.RegisterValidType || u.Group.Id == 3 || u.ValidEmail {
+		SetSigninCookies(c, u)
+		c.JSON(200, comps.NewRestRedirectResp("/h/firstlogin_true"))
+		return
+	}
+
+	ss.Set("validemail", u.Email)
+	if !models.NewValidByEmail(t, uid, u.Email) {
+		c.JSON(200, comps.NewRestErrResp(-1, "内部系统错误"))
+		return
+	}
+
+	SetSigninCookies(c, u)
+	c.JSON(200, comps.NewRestRedirectResp("/a/validemail/"))
+	return
+
 }
 
-/*
-
-
-
-  $uid = $this->model('account')->user_register($_POST['user_name'], $_POST['password'], $_POST['email']);
-
-
-if ($_POST['email'] == $invitation['invitation_email'])
-{
-  $this->model('active')->set_user_email_valid_by_uid($uid);
-
-  $this->model('active')->active_user_by_uid($uid);
+//
+func SetSigninCookies(c *macaron.Context, u *models.Users) {
+	//c.SetCookie("uid", u.Id）
+	//c.SetCookie("token", "")
 }
 
-if (isset($_POST['sex']))
-{
-  $update_data['sex'] = intval($_POST['sex']);
-
-  if ($_POST['province'])
-  {
-    $update_data['province'] = htmlspecialchars($_POST['province']);
-    $update_data['city'] = htmlspecialchars($_POST['city']);
-  }
-
-  if ($_POST['job_id'])
-  {
-    $update_data['job_id'] = intval($_POST['job_id']);
-  }
-
-  $update_attrib_data['signature'] = htmlspecialchars($_POST['signature']);
-
-  // 更新主表
-  $this->model('account')->update_users_fields($update_data, $uid);
-
-  // 更新从表
-  $this->model('account')->update_users_attrib_fields($update_attrib_data, $uid);
-}
-
-$this->model('account')->setcookie_logout();
-$this->model('account')->setsession_logout();
-
-if ($_POST['icode'])
-{
-  $follow_users = $this->model('invitation')->get_invitation_by_code($_POST['icode']);
-}
-else if (HTTP::get_cookie('fromuid'))
-{
-  $follow_users = $this->model('account')->get_user_info_by_uid(HTTP::get_cookie('fromuid'));
-}
-
-if ($follow_users['uid'])
-{
-  $this->model('follow')->user_follow_add($uid, $follow_users['uid']);
-  $this->model('follow')->user_follow_add($follow_users['uid'], $uid);
-
-  $this->model('integral')->process($follow_users['uid'], 'INVITE', get_setting('integral_system_config_invite'), '邀请注册: ' . $_POST['user_name'], $follow_users['uid']);
-}
-
-if ($_POST['icode'])
-{
-  $this->model('invitation')->invitation_code_active($_POST['icode'], time(), fetch_ip(), $uid);
-}
-
-if (get_setting('register_valid_type') == 'N' OR (get_setting('register_valid_type') == 'email' AND get_setting('register_type') == 'invite'))
-{
-  $this->model('active')->active_user_by_uid($uid);
-}
-
-$user_info = $this->model('account')->get_user_info_by_uid($uid);
-
-if (get_setting('register_valid_type') == 'N' OR $user_info['group_id'] != 3 OR $_POST['email'] == $invitation['invitation_email'])
-{
-  $this->model('account')->setcookie_login($user_info['uid'], $user_info['user_name'], $_POST['password'], $user_info['salt']);
-
-  if (!$_POST['_is_mobile'])
-  {
-    H::ajax_json_output(AWS_APP::RSM(array(
-      'url' => get_js_url('/home/first_login-TRUE')
-    ), 1, null));
-  }
-}
-else
-{
-  AWS_APP::session()->valid_email = $user_info['email'];
-
-  $this->model('active')->new_valid_email($uid);
-
-  if (!$_POST['_is_mobile'])
-  {
-    H::ajax_json_output(AWS_APP::RSM(array(
-      'url' => get_js_url('/account/valid_email/')
-    ), 1, null));
-  }
-}
-
-if ($_POST['_is_mobile'])
-{
-  if ($_POST['return_url'])
-  {
-    $user_info = $this->model('account')->get_user_info_by_uid($uid);
-
-    $this->model('account')->setcookie_login($user_info['uid'], $user_info['user_name'], $_POST['password'], $user_info['salt']);
-
-    $return_url = strip_tags($_POST['return_url']);
-  }
-  else
-  {
-    $return_url = get_js_url('/m/');
-  }
-
-  H::ajax_json_output(AWS_APP::RSM(array(
-    'url' => $return_url
-  ), 1, null));
-}
-*/
-
+//
 func CheckUsernameChar(un string) (string, bool) {
 	if kits.IsDigit(un) {
 		return "用户名不能为纯数字", false

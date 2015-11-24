@@ -83,7 +83,7 @@ type RegisterAccess struct {
 	CensorUser           string `map:"censoruser"`                  //用户注册名不允许出现以下关键字
 	DefFocusUids         string `map:"def_focus_uids"`              //用户注册后默认关注的用户 ID
 	WelcomeRecmdusers    string `map:"welcome_recommend_users"`     //首次登录推荐用户列表
-	NewerInviteNum       int    `map:"newer_invitation_num,string"` //新用户注册获得邀请数量
+	NewerInviteNum       int64  `map:"newer_invitation_num,string"` //新用户注册获得邀请数量
 	WelcomeMsgPm         string `map:"welcome_message_pm"`          //新用户注册系统发送的欢迎内容
 	EmailSettings        string `map:"set_email_settings"`          //新用户默认邮件提醒设置
 	NotificationSettings string `map:"set_notification_settings"`   //新用户默认通知设置

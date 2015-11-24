@@ -1,9 +1,6 @@
 package auth
 
 import (
-	"bytes"
-	"encoding/base64"
-	"encoding/binary"
 	"net"
 	"net/http"
 	"strings"
@@ -19,8 +16,7 @@ import (
 // the identifier of the operation which represents a api action
 type OperationId int64
 
-// the type of token
-type TokenFlag byte
+const DummyOptId OperationId = 0
 
 // A simple Authorization Service
 type AuthService interface {
@@ -28,120 +24,27 @@ type AuthService interface {
 	// clientip: the ip of the request
 	// uid: the id of operate user
 	// flag: the type of token
-	GenUserToken(clientip string, uid int64, expire int, flag TokenFlag) (string, error)
+	GenUserToken(clientip string, uid int64, expire int, flag kits.TokenFlag) (string, error)
 
 	// generate a system token
 	GenSysToken(clientip string, expire int) (string, error)
 
 	// Check whether the user can access by the token
-	Authenticate(clientip, token string) (*UserToken, bool)
+	Authenticate(clientip, token string) (*kits.UserToken, bool)
 
 	// Check the permissions of the user to operate the resource
 	// utoken: the token info after decode
 	// ownerUid: the owner of the resource
 	// oid: the id of current operation
-	Authorize(utoken *UserToken, ownerUid int64, oid OperationId) bool
-}
-
-// flag(1) + uid(8) + ip(16) + currenttime(8) + expire(4)
-type UserToken struct {
-	Flag     TokenFlag
-	Uid      int64
-	ClientIP string // the ip of the request
-	GenTime  int64  // timestamp when generating token
-	Expire   int    // unit: second
-}
-
-const (
-	TokenLen             = 1 + 8 + 16 + 8 + 4
-	TokenSys   TokenFlag = 0x00 // system general user
-	TokenUser  TokenFlag = 0x01 // login user
-	TokenAdmin TokenFlag = 0x01
-
-	sysUserId int64 = int64(-8619820608)
-
-	DummyOptId OperationId = 0
-)
-
-func (ut *UserToken) GenToken(crypto *kits.Crypto) (string, error) {
-	bs := make([]byte, TokenLen)
-	buf := bytes.NewBuffer(bs)
-
-	// flag
-	buf.WriteByte(byte(ut.Flag))
-
-	// uid
-	binary.Write(buf, binary.BigEndian, ut.Uid)
-
-	// client ip
-	ip := net.ParseIP(ut.ClientIP)
-	buf.Write([]byte(ip))
-
-	// current time
-	binary.Write(buf, binary.BigEndian, time.Now().Unix())
-
-	// current time
-	binary.Write(buf, binary.BigEndian, ut.Expire)
-
-	// encrypt
-	if t, err := crypto.Encrypt(buf.Bytes()); err != nil {
-		return "", err
-	} else {
-		return base64.URLEncoding.EncodeToString(t), nil
-	}
-}
-
-func (ut *UserToken) DecodeToken(crypto *kits.Crypto, token string) bool {
-	bs, err := base64.URLEncoding.DecodeString(token)
-	if err != nil {
-		return false
-	}
-
-	// decrypt
-	var tbs []byte
-	tbs, err = crypto.Decrypt(bs)
-	if err != nil {
-		return false
-	}
-
-	// check the len
-	if len(tbs) != TokenLen {
-		return false
-	}
-
-	ut.Flag = TokenFlag(tbs[0])
-	// remain bytes
-	buf := bytes.NewReader(tbs[1:])
-
-	// read uid
-	if err := binary.Read(buf, binary.BigEndian, &ut.Uid); err != nil {
-		return false
-	}
-
-	// ip
-	var ip net.IP
-	buf.Read([]byte(ip))
-	ut.ClientIP = ip.String()
-
-	// gen time
-	if err := binary.Read(buf, binary.BigEndian, &ut.GenTime); err != nil {
-		return false
-	}
-
-	// gen time
-	if err := binary.Read(buf, binary.BigEndian, &ut.Expire); err != nil {
-		return false
-	}
-
-	return true
+	Authorize(utoken *kits.UserToken, ownerUid int64, oid OperationId) bool
 }
 
 type authService struct {
 	crypto *kits.Crypto
 }
 
-func (cas *authService) GenUserToken(clientip string, uid int64, expire int, flag TokenFlag) (string, error) {
-	ut := &UserToken{
+func (cas *authService) GenUserToken(clientip string, uid int64, expire int, flag kits.TokenFlag) (string, error) {
+	ut := &kits.UserToken{
 		Flag:     flag,
 		Uid:      uid,
 		ClientIP: clientip,
@@ -153,9 +56,9 @@ func (cas *authService) GenUserToken(clientip string, uid int64, expire int, fla
 }
 
 func (cas *authService) GenSysToken(clientip string, expire int) (string, error) {
-	ut := &UserToken{
-		Flag:     TokenSys,
-		Uid:      sysUserId,
+	ut := &kits.UserToken{
+		Flag:     kits.TokenSys,
+		Uid:      kits.SysUserId,
 		ClientIP: clientip,
 		GenTime:  time.Now().Unix(),
 		Expire:   expire,
@@ -164,8 +67,8 @@ func (cas *authService) GenSysToken(clientip string, expire int) (string, error)
 	return ut.GenToken(cas.crypto)
 }
 
-func (cas *authService) Authenticate(clientip, token string) (*UserToken, bool) {
-	ut := &UserToken{}
+func (cas *authService) Authenticate(clientip, token string) (*kits.UserToken, bool) {
+	ut := &kits.UserToken{}
 	if !ut.DecodeToken(cas.crypto, token) {
 		log.Errorf("Decode token failed, token=%s", token)
 		return nil, false
@@ -185,12 +88,12 @@ func (cas *authService) Authenticate(clientip, token string) (*UserToken, bool) 
 	}
 
 	switch ut.Flag {
-	case TokenSys:
-		if ut.Uid != sysUserId {
-			log.Errorf("Uid(%v!=%v) is invalid.", ut.Uid, sysUserId)
+	case kits.TokenSys:
+		if ut.Uid != kits.SysUserId {
+			log.Errorf("Uid(%v!=%v) is invalid.", ut.Uid, kits.SysUserId)
 			return nil, false
 		}
-	case TokenUser:
+	case kits.TokenUser:
 		if ut.Uid <= 0 {
 			log.Errorf("Uid(%v) is invalid.", ut.Uid)
 			return nil, false
@@ -202,14 +105,14 @@ func (cas *authService) Authenticate(clientip, token string) (*UserToken, bool) 
 	return ut, true
 }
 
-func (cas *authService) Authorize(ut *UserToken, ownerUid int64, oid OperationId) bool {
+func (cas *authService) Authorize(ut *kits.UserToken, ownerUid int64, oid OperationId) bool {
 	if ut != nil {
 		return false
 	}
 
 	// only support operate owner resource
 	switch ut.Flag {
-	case TokenUser:
+	case kits.TokenUser:
 		if ut.Uid != ownerUid {
 			log.Errorf("Uid(%v!=%v) is not equal.", ut.Uid, ownerUid)
 			return false

@@ -85,10 +85,10 @@ func (t *Transaction) Count(table string, field string, value interface{}) (int6
 }
 
 // 根据某个字查询统计字段值的求和
-func (t *Transaction) Sum(table string, field string, where string, value interface{}) (int, bool) {
+func (t *Transaction) Sum(table string, field string, where string, value interface{}) (int64, bool) {
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select(fmt.Sprintf("SUM(%s)", field)).From(table).Where(where + " = ?")
-	var sum int = 0
+	var sum int64 = 0
 	if err := t.o.Raw(qb.String(), value).QueryRow(&sum); err != nil {
 		return 0, false
 	}

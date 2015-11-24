@@ -58,8 +58,8 @@ func AddUserFollow(t *Transaction, fans, friend int64) bool {
 	// 更新各自的统计，需要性能优化
 	go func() {
 		nt := NewTr()
-		UpdateUFollowRelation(nt, fans)
-		UpdateUFollowRelation(nt, friend)
+		updateUFollowRelation(nt, fans)
+		updateUFollowRelation(nt, friend)
 	}()
 
 	return true
@@ -70,7 +70,7 @@ func UFollowExistedById(fans, friend int64) bool {
 		Filter("Friend", friend).Exist()
 }
 
-func UpdateUFollowRelation(t *Transaction, uid int64) bool {
+func updateUFollowRelation(t *Transaction, uid int64) bool {
 	fansc, ok1 := t.Count("UserFollow", "Friend", uid)
 	if !ok1 {
 		return false

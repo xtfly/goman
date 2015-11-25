@@ -12,4 +12,5 @@ func Route(m *macaron.Macaron) {
 	m.Get("/a/signup", account.GetSignupCtrl)
 
 	m.Post("/api/account/check", account.ApiCheckUserName)
+	m.Post("/api/acount/signup/", account.ApiUserSignup)
 }

@@ -6,7 +6,8 @@ import (
 )
 
 func HomeCtrl(c *macaron.Context) {
-	comps.DefCxt(c, 0)
+	r := comps.NewRender(c)
+	r.DefCxt(0)
 	c.Data["app"] = "explore"
-	comps.HTML(c, 200, "home/index")
+	r.HTML(200, "home/index")
 }

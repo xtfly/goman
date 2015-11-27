@@ -6,6 +6,20 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
+const (
+	_                 int64 = iota //
+	GroupSuperAdmin                //超级管理员
+	GroupWebAdmin                  //前台管理员
+	GroupNotValidated              //未验证会员
+	GroupNormal                    //普通会员
+	GroupRegistered                //注册会员
+	GroupPrimary                   //初级会员
+	GroupMedium                    //中级会员
+	GroupSenior                    //高级会员
+	GroupCore                      //核心会员
+	GroupTourist      = 99         //游客
+)
+
 //用户组
 type UsersGroup struct {
 	Id         int64  `json:"gid" orm:"pk;auto"`

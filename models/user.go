@@ -113,7 +113,7 @@ func (m *Users) Add(t *Transaction) (int64, bool) {
 
 	// 前面要求对邀请码验证
 	if !syscfg.Ra.RegisterValidType || (syscfg.Ra.RegisterValidType && syscfg.Ra.RegisterType == RegTypeInvite) {
-		m.Group = &UsersGroup{Id: 4}
+		m.Group = &UsersGroup{Id: GroupNormal}
 	}
 
 	//

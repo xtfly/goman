@@ -1,4 +1,4 @@
-package kits
+package token
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"encoding/binary"
 	"net"
 	"time"
+
+	"github.com/xtfly/goman/kits"
 )
 
 // the type of token
@@ -29,7 +31,7 @@ const (
 	SysUserId int64 = int64(-8619820608)
 )
 
-func (ut *UserToken) GenToken(crypto *Crypto) (string, error) {
+func (ut *UserToken) GenToken(crypto *kits.Crypto) (string, error) {
 	bs := make([]byte, TokenLen)
 	buf := bytes.NewBuffer(bs)
 
@@ -57,7 +59,7 @@ func (ut *UserToken) GenToken(crypto *Crypto) (string, error) {
 	}
 }
 
-func (ut *UserToken) DecodeToken(crypto *Crypto, token string) bool {
+func (ut *UserToken) DecodeToken(crypto *kits.Crypto, token string) bool {
 	bs, err := base64.URLEncoding.DecodeString(token)
 	if err != nil {
 		return false
@@ -100,4 +102,22 @@ func (ut *UserToken) DecodeToken(crypto *Crypto, token string) bool {
 	}
 
 	return true
+}
+
+func (ut *UserToken) Expired() bool {
+	if time.Now().Unix()-ut.GenTime > int64(ut.Expire*60) {
+		return true
+	}
+
+	return false
+}
+
+// 每隔2分刷新token
+func (ut *UserToken) NeedRefresh() bool {
+	ivl := time.Now().Unix() - ut.GenTime
+	if ivl < int64(ut.Expire*60) && ivl > 2*60 {
+		return true
+	}
+
+	return false
 }

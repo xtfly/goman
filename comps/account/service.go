@@ -181,3 +181,23 @@ func (s *AccountService) Signup(f SignupForm, clientip string) (*models.Users, s
 
 	return u, "", true
 }
+
+func (s *AccountService) CheckSignin(m *models.Users) (string, bool) {
+	if m.Forbidden {
+		return "抱歉, 你的账号已经被禁止登录", false
+	}
+
+	if boot.SysSetting.Ra.SiteClose &&
+		m.Group.Id != models.GroupSuperAdmin &&
+		m.Group.Id != models.GroupWebAdmin {
+		return boot.SysSetting.Ra.SiteNotice, false
+	}
+
+	return "", true
+}
+
+type SigninForm struct {
+	Input     string `form:"name"`
+	Password  string `form:"password"`
+	ReturnUrl string `form:"return_url"`
+}

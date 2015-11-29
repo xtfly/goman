@@ -112,7 +112,8 @@ func (m *Users) Add(t *Transaction) (int64, bool) {
 	m.FirstLogin = true
 
 	// 前面要求对邀请码验证
-	if !syscfg.Ra.RegisterValidType || (syscfg.Ra.RegisterValidType && syscfg.Ra.RegisterType == RegTypeInvite) {
+	if syscfg.Ra.RegisterValidType == RegValidNone ||
+		(syscfg.Ra.RegisterValidType == RegValidEmail && syscfg.Ra.RegisterType == RegTypeInvite) {
 		m.Group = &UsersGroup{Id: GroupNormal}
 	}
 
@@ -152,4 +153,22 @@ func (m *Users) Add(t *Transaction) (int64, bool) {
 	}
 
 	return id, ok
+}
+
+func (m *Users) CheckSignin(input string, password string) bool {
+	f := "Email"
+	if strings.Contains(input, "@") {
+		m.Email = input
+	} else {
+		m.UserName = input
+		f = "UserName"
+	}
+	t := NewTr()
+	if !t.Read(m, f) {
+		return false
+	}
+	if !kits.CmpPasswd(password, m.Salt, m.Password) {
+		return false
+	}
+	return t.Read(m.Group)
 }

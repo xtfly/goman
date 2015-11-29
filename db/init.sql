@@ -22,7 +22,7 @@ INSERT INTO `system_setting` (`name`, `value`) VALUES
 ('hot_question_period', '7'),
 ('recommend_users_number', '6'),
 ('ucenter_enabled', 'false'),
-('register_valid_type', 'Y'),
+('register_valid_type', '1'),
 ('best_answer_day', '30'),
 ('answer_self_question', 'true'),
 ('censoruser', 'admin'),

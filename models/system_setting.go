@@ -69,13 +69,19 @@ const (
 	UserNotifyArticleCommentAtMe        //有文章评论提到我
 )
 
+const (
+	RegValidNone = iota
+	RegValidEmail
+	RegValidApproval
+)
+
 // the setting of user register access information
 type RegisterAccess struct {
 	DefaultTimezone      string `map:"default_timezone"`            //默认时区
 	SiteClose            bool   `map:"site_close,string"`           //站点关闭
 	SiteNotice           string `map:"close_notice"`                //站点关闭的提示
 	RegisterCaptcha      bool   `map:"register_seccode,string"`     //新用户注册显示验证码
-	RegisterValidType    bool   `map:"register_valid_type,string"`  //新用户注册验证类型
+	RegisterValidType    int8   `map:"register_valid_type,string"`  //新用户注册验证类型
 	RegisterType         int    `map:"register_type,string"`        //注册类型
 	UsernameRule         int    `map:"username_rule,string"`        //用户名规则
 	UsernameLenMin       int    `map:"username_length_min,string"`  //用户名最少字符数

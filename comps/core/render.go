@@ -3,9 +3,13 @@ package core
 import (
 	"fmt"
 	"html"
+	"reflect"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/go-macaron/captcha"
+	"github.com/go-macaron/session"
 	"github.com/xtfly/goman/boot"
 	"github.com/xtfly/goman/models"
 	"gopkg.in/macaron.v1"
@@ -137,5 +141,34 @@ func (c *Render) init() *Render {
 }
 
 func (c *Render) loadUser() {
+	ss := c.getSessionStore()
+	if ss == nil {
+		return
+	}
 
+	c.UserInfo = ss.Get("uinfo").(*models.Users)
+	if c.UserInfo == nil {
+		c.UserInfo = &models.Users{Id: c.Uid}
+		t := models.NewTr()
+
+		if !t.Read(c.UserInfo) {
+			return
+		}
+		if !t.Read(c.UserInfo.Group) {
+			return
+		}
+
+		ss.Set("uinfo", c.UserInfo)
+	}
+}
+
+func (c *Render) getSessionStore() session.Store {
+	ss := (*session.Store)(nil)
+	sst := reflect.TypeOf(ss)
+	ssv := c.GetVal(sst)
+	if ssv.CanInterface() {
+		return ssv.Interface().(session.Store)
+	}
+	log.Error("Get session.Store failed.")
+	return nil
 }

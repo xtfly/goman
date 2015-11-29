@@ -56,9 +56,11 @@ func ApiUserSignup(c *macaron.Context, f SignupForm, cpt *captcha.Captcha,
 	}
 
 	// 如果不需要email验证
-	if !boot.SysSetting.Ra.RegisterValidType || u.Group.Id == models.GroupNotValidated || u.ValidEmail {
+	if boot.SysSetting.Ra.RegisterValidType == models.RegValidNone ||
+		u.Group.Id == models.GroupNotValidated ||
+		u.ValidEmail {
 		SetSigninCookies(c, u, a, ss)
-		c.JSON(200, comps.NewRestRedirectResp("/h/firstlogin_true"))
+		c.JSON(200, comps.NewRestRedirectResp("/h/firstlogin"))
 		return
 	}
 
@@ -78,4 +80,8 @@ func SetSigninCookies(c *macaron.Context, u *models.Users, a token.TokenService,
 	t, _ := a.GenUserToken(c.RemoteAddr(), u.Id, 24*60, token.TokenUser)
 	c.SetCookie("utoken", t, 24*60*60)
 	ss.Set("utoken", t)
+}
+
+func ApiSignin(c *macaron.Context) {
+
 }

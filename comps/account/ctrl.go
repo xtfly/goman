@@ -18,14 +18,14 @@ func GetSignupCtrl(c *macaron.Context, cpt *captcha.Captcha, a token.TokenServic
 	}
 
 	icode := c.QueryEscape("icode")
-	if boot.SysSetting.Ra.RegisterType == models.RegTypeInvite || icode == "" {
+	if boot.SysSetting.Ra.RegisterType == models.RegTypeInvite && icode == "" {
 		r.RedirectMsg("本站只接受邀请注册", "/")
 		return
 	}
 
 	if icode != "" {
 		if i := models.CheckICodeAvailable(icode); i != nil {
-			r.Set("icode", icode)
+			r.Data["icode"] = icode
 		} else {
 			r.RedirectMsg("邀请码无效或已经使用, 请使用新的邀请码", "/")
 			return
@@ -39,5 +39,5 @@ func GetSignupCtrl(c *macaron.Context, cpt *captcha.Captcha, a token.TokenServic
 	c.Data["jobs"] = models.AllJobs()
 	c.Data["csrf_token"], _ = a.GenSysToken(c.RemoteAddr(), 15)
 
-	r.HTML(200, "account/signup")
+	r.RHTML(200, "account/signup")
 }

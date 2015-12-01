@@ -70,7 +70,7 @@ func (c *Render) AddJs(js ...string) *Render {
 	return c
 }
 
-func (c *Render) HTML(sc int, tn string) {
+func (c *Render) RHTML(sc int, tn string, data ...interface{}) {
 	us := boot.SysSetting.Ps.UiStyle
 	c.HTML(sc, us+"/"+tn)
 }
@@ -85,16 +85,11 @@ func (c *Render) SetCaptcha(cpt *captcha.Captcha) {
 	c.Data["captcha_url"] = fmt.Sprintf("%s%s%s.png", cpt.SubURL, cpt.URLPrefix, cptvalue)
 }
 
-func (c *Render) Set(key string, value interface{}) *Render {
-	c.Data[key] = value
-	return c
-}
-
 func (c *Render) RedirectMsgWithDelay(msg, url string, interval int) {
 	c.Data["message"] = msg
 	c.Data["url_bit"] = url
 	c.Data["interval"] = interval
-	c.HTML(200, "global/show_message")
+	c.RHTML(200, "global/show_message")
 }
 
 func (c *Render) RedirectMsg(msg, url string) {
@@ -109,27 +104,31 @@ type Crumb struct {
 //产生面包屑导航数据,并生成浏览器标题供前端使用
 func (c *Render) SetCrumb(name string, url string) {
 	sname := html.UnescapeString(name)
-	crumbtpl := c.Data["crumb"].([]*Crumb)
-	if crumbtpl == nil {
+	crumbtpl := ([]*Crumb)(nil)
+	if crumb := c.Data["crumb"]; crumb == nil {
 		crumbtpl = []*Crumb{&Crumb{Name: sname, Url: url}}
 	} else {
+		crumbtpl = crumb.([]*Crumb)
 		crumbtpl = append(crumbtpl, &Crumb{Name: sname, Url: url})
 	}
-	c.Set("crumb", crumbtpl)
+	c.Data["crumb"] = crumbtpl
 
 	var title string
 	for _, item := range crumbtpl {
 		title = item.Name + "/" + title
 	}
 
-	c.Set("page-title", html.EscapeString(strings.TrimRight(title, "/")))
+	c.Data["page_title"] = html.EscapeString(strings.TrimRight(title, "/"))
 }
 
 func (c *Render) init() *Render {
 	// 如果登录用户，则加载用户信息
 	// c.Data["uid"]是token插件设置
-	if c.Uid = c.Data["uid"].(int64); c.Uid != 0 {
-		c.loadUser()
+	uid := c.Data["uid"]
+	if uid != nil {
+		if c.Uid = uid.(int64); c.Uid != 0 {
+			c.loadUser()
+		}
 	}
 
 	c.defDatas().defCss().defJs()

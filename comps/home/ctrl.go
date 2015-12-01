@@ -8,5 +8,5 @@ import (
 func HomeCtrl(c *macaron.Context) {
 	r := core.NewRender(c)
 	c.Data["app"] = "explore"
-	r.HTML(200, "home/index")
+	r.RHTML(200, "home/index")
 }

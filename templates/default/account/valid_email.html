@@ -1,0 +1,25 @@
+{% include "../global/header_meta.html" %}
+
+<div class="aw-register-box aw-find-pwd">
+	<div class="mod-head">
+		<a href=""><img src="{{sys.Si.Static}}/front/css/{{sys.Ps.UiStyle}}/img/login_logo.png" alt="" /></a>
+		<h1>邮箱验证</h1>
+	</div>
+	<div class="mod-body">
+		<p>
+			感谢您的注册! 激活链接已经发到您邮箱 <b>{{email}}</b> <a onclick="$('#modify_email_form').show(); $('#send_valid_mail').hide();" class="font-size-12">更换邮箱</a><br/>
+			<form id="modify_email_form" action="/api/account/modifyemail/" class="form-inline hide" onsubmit="return false" method="post">
+				<div class="form-group">
+			    	<input type="text" class="form-control" name="email" />
+			  	</div>
+				<a class="btn btn-primary" onclick="GOM.ajax_post($('#modify_email_form'))">发送确认邮件</a>
+			</form>
+		</p>
+		<p id="send_valid_mail"><a href="javascript:;" onClick="GOM.ajax_request('/api/account/sendmail/');">再次发送确认邮件</a></p>
+	</div>
+	<div class="mod-footer">
+		<p><b>还没收到确认邮件</b>? • 尝试到广告邮件、垃圾邮件目录里找找看</p>
+	</div>
+</div>
+
+{% include "../global/footer.html" %}

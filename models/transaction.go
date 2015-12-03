@@ -16,14 +16,22 @@ type Transaction struct {
 
 func NewTr() *Transaction { return &Transaction{o: orm.NewOrm(), Err: nil} }
 
-func (t *Transaction) Begin() {
+func (t *Transaction) Begin() *Transaction {
 	t.o.Begin()
+	return t
 }
 
 func (t *Transaction) End() {
+	if err := recover(); err != nil {
+		log.Errorf("Operate db failed, %v", err)
+		t.o.Rollback()
+		return
+	}
+
 	if t.Err == nil {
 		t.o.Commit()
 	} else {
+		log.Errorf("Operate db failed, %v", t.Err.Error())
 		t.o.Rollback()
 	}
 }

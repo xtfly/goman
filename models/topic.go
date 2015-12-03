@@ -33,9 +33,9 @@ type Topic struct {
 
 //话题关注表
 type TopicFocus struct {
-	Id    int64  `json:"id" orm:"pk;auto"`                      //ID
-	Topic *Topic `json:"topic" orm:"rel(one);column(topic_id)"` //
-	Uid   int64  `json:"uid" orm:"default(0);index"`            //话题标题
+	Id  int64 `json:"id" orm:"pk;auto"`           //ID
+	Tid int64 `json:"topic_id" orm:"index"`       //
+	Uid int64 `json:"uid" orm:"default(0);index"` //话题标题
 
 	AddTime time.Time `json:"time" orm:"auto_now_add;type(datetime)"` //添加时间
 }
@@ -52,10 +52,10 @@ type TopicMerge struct {
 
 //话题关联表
 type TopicRelation struct {
-	Id     int64  `json:"id" orm:"pk;auto"`                      //ID
-	Topic  *Topic `json:"topic" orm:"rel(one);column(topic_id)"` //
-	ItemId int64  `json:"item_id" orm:"default(0);index"`        //
-	Uid    int64  `json:"uid" orm:"default(0);index"`            //
+	Id     int64  `json:"id" orm:"pk;auto"`               //ID
+	Tid    int64  `json:"topic_id" orm:"index"`           //
+	ItemId int64  `json:"item_id" orm:"default(0);index"` //
+	Uid    int64  `json:"uid" orm:"default(0);index"`     //
 	Type   string `json:"type" orm:"size(16);null"`
 
 	AddTime time.Time `json:"time" orm:"auto_now_add;type(datetime)"` //添加时间

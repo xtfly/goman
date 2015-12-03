@@ -16,18 +16,18 @@ const (
 )
 
 type Users struct {
-	Id        int64       `json:"uid" orm:"pk;auto"`                 //用户的 UID
-	UserName  string      `json:"user_name" orm:"index;unique"`      //用户名
-	Email     string      `json:"email" orm:"index"`                 //EMAIL
-	Mobile    string      `json:"mobile" orm:"index"`                //用户手机
-	Salt      string      `json:"-"`                                 //加密的盐值
-	Password  string      `json:"-"`                                 //加密之后的密文
-	Group     *UsersGroup `json:"group_id" orm:"rel(one);index"`     //用户组
-	RepuGroup int64       `json:"reputation_group" orm:"default(0)"` //威望对应组
+	Id        int64  `json:"uid" orm:"pk;auto"`                 //用户的 UID
+	UserName  string `json:"user_name" orm:"index;unique"`      //用户名
+	Email     string `json:"email" orm:"index"`                 //EMAIL
+	Mobile    string `json:"mobile" orm:"index"`                //用户手机
+	Salt      string `json:"-"`                                 //加密的盐值
+	Password  string `json:"-"`                                 //加密之后的密文
+	GroupId   int64  `json:"group_id" orm:"index"`              //用户组
+	RepuGroup int64  `json:"reputation_group" orm:"default(0)"` //威望对应组
 
 	// 基本信息
-	Avatar     string    `json:"avatar" orm:"null;index;unique"`             //头像文件
-	Gender     int8      `json:"gender" valid:"Range(0,2)" orm:"default(0)"` //0：Unknown, 1: Male， 2：Female
+	Avatar     string    `json:"avatar" orm:"null;index;"`                   //头像文件
+	Gender     int8      `json:"gender" orm:"default(0)"`                    //0：Unknown, 1: Male， 2：Female
 	Birthday   time.Time `json:"birthday" orm:"null;type(date)"`             //生日
 	Province   string    `json:"province" orm:"null"`                        //省
 	City       string    `json:"city" orm:"null"`                            //市
@@ -84,9 +84,7 @@ func init() {
 
 //检查用户名,电子邮件地址是否已经存在
 func UserExistedByName(name string) bool {
-	cond := orm.NewCondition()
-	cond.Or("UserName", name).Or("UrlToken", name)
-	return NewTr().Query("Users").SetCond(cond).Exist()
+	return NewTr().Query("Users").Filter("UserName", name).Exist()
 }
 
 func UserExistedByEmail(email string) bool {
@@ -104,7 +102,7 @@ func (m *Users) Add(t *Transaction) (int64, bool) {
 	m.Password, m.Salt = kits.GenPasswd(m.Password, 8)
 
 	// 生成用户的URL
-	m.UrlToken = kits.GenHashStr(m.UserName, 4)
+	m.UrlToken = kits.NewRandWithPrefix(m.Email, 8)
 	m.UrlTokenUpdated = time.Now()
 
 	m.InvitationAvailable = syscfg.Ra.NewerInviteNum
@@ -114,7 +112,7 @@ func (m *Users) Add(t *Transaction) (int64, bool) {
 	// 前面要求对邀请码验证
 	if syscfg.Ra.RegisterValidType == RegValidNone ||
 		(syscfg.Ra.RegisterValidType == RegValidEmail && syscfg.Ra.RegisterType == RegTypeInvite) {
-		m.Group = &UsersGroup{Id: GroupNormal}
+		m.GroupId = GroupNormal
 	}
 
 	//
@@ -167,8 +165,9 @@ func (m *Users) CheckSignin(input string, password string) bool {
 	if !t.Read(m, f) {
 		return false
 	}
+
 	if !kits.CmpPasswd(password, m.Salt, m.Password) {
 		return false
 	}
-	return t.Read(m.Group)
+	return true
 }

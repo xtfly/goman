@@ -1,6 +1,7 @@
 package kits
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io"
 	"math"
@@ -10,8 +11,12 @@ import (
 	crand "crypto/rand"
 )
 
+func NewRandWithPrefix(prefix string, len int) string {
+	return hex.EncodeToString([]byte(prefix)) + NewRand(len)
+}
+
 // Create a rang string
-func StringNewRand(len int) string {
+func NewRand(len int) string {
 	u := make([]byte, len/2)
 	// Reader is a global, shared instance of a cryptographically strong pseudo-random generator.
 	// On Unix-like systems, Reader reads from /dev/urandom.
@@ -21,11 +26,11 @@ func StringNewRand(len int) string {
 		panic(err)
 	}
 
-	return fmt.Sprintf("%x", u)
+	return hex.EncodeToString(u)
 }
 
 // NewUUID generates a new UUID based on version 4.
-func StringNewUUID() string {
+func NewUUID() string {
 	u := make([]byte, 16)
 	// Reader is a global, shared instance of a cryptographically strong pseudo-random generator.
 	// On Unix-like systems, Reader reads from /dev/urandom.

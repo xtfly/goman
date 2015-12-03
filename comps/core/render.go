@@ -76,6 +76,10 @@ func (c *Render) RHTML(sc int, tn string, data ...interface{}) {
 }
 
 func (c *Render) SetCaptcha(cpt *captcha.Captcha) {
+	SetCaptcha(c.Context, cpt)
+}
+
+func SetCaptcha(c *macaron.Context, cpt *captcha.Captcha) {
 	cptvalue, err := cpt.CreateCaptcha()
 	if err != nil {
 		return
@@ -145,25 +149,29 @@ func (c *Render) loadUser() {
 		return
 	}
 
-	c.UserInfo = ss.Get("uinfo").(*models.Users)
-	if c.UserInfo == nil {
+	uinfo := ss.Get("uinfo")
+	if uinfo == nil {
 		c.UserInfo = &models.Users{Id: c.Uid}
 		t := models.NewTr()
 
 		if !t.Read(c.UserInfo) {
 			return
 		}
-		if !t.Read(c.UserInfo.Group) {
-			return
-		}
+
+		// if !t.Read(c.UserInfo.Group) {
+		// 	return
+		// }
 
 		ss.Set("uinfo", c.UserInfo)
+	} else {
+		c.UserInfo = uinfo.(*models.Users)
 	}
 }
 
 func (c *Render) getSessionStore() session.Store {
 	ss := (*session.Store)(nil)
-	sst := reflect.TypeOf(ss)
+	sst := reflect.TypeOf(ss).Elem()
+	log.Info(sst)
 	ssv := c.GetVal(sst)
 	if ssv.CanInterface() {
 		return ssv.Interface().(session.Store)

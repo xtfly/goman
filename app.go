@@ -20,7 +20,7 @@ func main() {
 	m.Use(macaron.Logger())
 	m.Use(macaron.Recovery())
 	m.Use(cache.Cacher())
-	m.Use(session.Sessioner())
+	m.Use(session.Sessioner(session.Options{CookieName: "s"}))
 	m.Use(captcha.Captchaer(captcha.Options{Width: 120, Height: 40}))
 	m.Use(macaron.Static("static", macaron.StaticOptions{Prefix: "/static"}))
 	m.Use(pongo2.Pongoer())

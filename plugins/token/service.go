@@ -19,10 +19,10 @@ type TokenService interface {
 	// clientip: the ip of the request
 	// uid: the id of operate user
 	// flag: the type of token
-	GenUserToken(clientip string, uid int64, expire int, flag TokenFlag) (string, error)
+	GenUserToken(clientip string, uid int64, expire int32, flag TokenFlag) (string, error)
 
 	// generate a system token
-	GenSysToken(clientip string, expire int) (string, error)
+	GenSysToken(clientip string, expire int32) (string, error)
 
 	// Check whether the user can access by the token
 	Authenticate(clientip, token string) (*UserToken, bool)
@@ -34,7 +34,7 @@ type tokenService struct {
 	crypto *kits.Crypto
 }
 
-func (cas *tokenService) GenUserToken(clientip string, uid int64, expire int, flag TokenFlag) (string, error) {
+func (cas *tokenService) GenUserToken(clientip string, uid int64, expire int32, flag TokenFlag) (string, error) {
 	ut := &UserToken{
 		Flag:     flag,
 		Uid:      uid,
@@ -46,7 +46,7 @@ func (cas *tokenService) GenUserToken(clientip string, uid int64, expire int, fl
 	return ut.GenToken(cas.crypto)
 }
 
-func (cas *tokenService) GenSysToken(clientip string, expire int) (string, error) {
+func (cas *tokenService) GenSysToken(clientip string, expire int32) (string, error) {
 	ut := &UserToken{
 		Flag:     TokenSys,
 		Uid:      SysUserId,
@@ -62,7 +62,7 @@ func (cas *tokenService) Authenticate(clientip, token string) (*UserToken, bool)
 	ut := &UserToken{}
 	if !ut.DecodeToken(cas.crypto, token) {
 		log.Errorf("Decode token failed, token=%s", token)
-		return nil, false
+		return ut, false
 	}
 
 	// check the ip
@@ -70,19 +70,19 @@ func (cas *tokenService) Authenticate(clientip, token string) (*UserToken, bool)
 	rip := net.ParseIP(clientip)
 	if !tip.Equal(rip) {
 		log.Errorf("Check client failed, token ip=%s, real ip=%s", ut.ClientIP, clientip)
-		return nil, false
+		return ut, false
 	}
 
 	switch ut.Flag {
 	case TokenSys:
 		if ut.Uid != SysUserId {
 			log.Errorf("Uid(%v!=%v) is invalid.", ut.Uid, SysUserId)
-			return nil, false
+			return ut, false
 		}
 	case TokenUser:
 		if ut.Uid <= 0 {
 			log.Errorf("Uid(%v) is invalid.", ut.Uid)
-			return nil, false
+			return ut, false
 		}
 	default:
 		break
@@ -123,8 +123,9 @@ func Tokener() macaron.Handler {
 		}
 
 		// 服务端存在，但不相等
-		stoken := ss.Get("utoken").(string)
-		if stoken != "" {
+		itoken := ss.Get("utoken")
+		if itoken != nil {
+			stoken := itoken.(string)
 			if utoken != stoken {
 				http.Error(res, "Not Authorized", http.StatusUnauthorized)
 				return

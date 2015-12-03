@@ -7,23 +7,24 @@ import (
 	"net"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/xtfly/goman/kits"
 )
 
 // the type of token
 type TokenFlag byte
 
-// flag(1) + uid(8) + ip(16) + currenttime(8) + expire(4)
+// flag(1) + uid(8) + ip(4) + currenttime(8) + expire(4)
 type UserToken struct {
 	Flag     TokenFlag
 	Uid      int64
 	ClientIP string // the ip of the request
 	GenTime  int64  // timestamp when generating token
-	Expire   int    // unit: second
+	Expire   int32  // unit: second
 }
 
 const (
-	TokenLen             = 1 + 8 + 16 + 8 + 4
+	TokenLen             = 1 + 8 + 4 + 8 + 4
 	TokenSys   TokenFlag = 0x00 // system general user
 	TokenUser  TokenFlag = 0x01 // login user
 	TokenAdmin TokenFlag = 0x01
@@ -32,7 +33,7 @@ const (
 )
 
 func (ut *UserToken) GenToken(crypto *kits.Crypto) (string, error) {
-	bs := make([]byte, TokenLen)
+	bs := make([]byte, 0)
 	buf := bytes.NewBuffer(bs)
 
 	// flag
@@ -43,15 +44,17 @@ func (ut *UserToken) GenToken(crypto *kits.Crypto) (string, error) {
 
 	// client ip
 	ip := net.ParseIP(ut.ClientIP)
-	buf.Write([]byte(ip))
+	//log.Info("token length, ip  ", ut.ClientIP)
+	buf.Write([]byte(ip.To4()))
 
 	// current time
 	binary.Write(buf, binary.BigEndian, time.Now().Unix())
 
-	// current time
+	// expire
 	binary.Write(buf, binary.BigEndian, ut.Expire)
 
 	// encrypt
+	//log.Info("token length, expire ", buf.Len())
 	if t, err := crypto.Encrypt(buf.Bytes()); err != nil {
 		return "", err
 	} else {
@@ -69,11 +72,13 @@ func (ut *UserToken) DecodeToken(crypto *kits.Crypto, token string) bool {
 	var tbs []byte
 	tbs, err = crypto.Decrypt(bs)
 	if err != nil {
+		log.Error("Decrypt failed ", err.Error())
 		return false
 	}
 
 	// check the len
-	if len(tbs) != TokenLen {
+	if l := len(tbs); l != TokenLen {
+		log.Error("Invalid length ", l)
 		return false
 	}
 
@@ -83,21 +88,25 @@ func (ut *UserToken) DecodeToken(crypto *kits.Crypto, token string) bool {
 
 	// read uid
 	if err := binary.Read(buf, binary.BigEndian, &ut.Uid); err != nil {
+		log.Error("Read uid failed ", err.Error())
 		return false
 	}
 
 	// ip
-	var ip net.IP
-	buf.Read([]byte(ip))
-	ut.ClientIP = ip.String()
+	ip := make([]byte, 4)
+	buf.Read(ip)
+	ut.ClientIP = net.IP(ip).String()
+	//log.Info("token ip  ", ut.ClientIP)
 
 	// gen time
 	if err := binary.Read(buf, binary.BigEndian, &ut.GenTime); err != nil {
+		log.Error("Read generate time failed ", err.Error())
 		return false
 	}
 
-	// gen time
+	// expire time
 	if err := binary.Read(buf, binary.BigEndian, &ut.Expire); err != nil {
+		log.Error("Read expire time failed ", err.Error())
 		return false
 	}
 

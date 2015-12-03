@@ -8,9 +8,9 @@ import (
 
 // 用户关注表
 type UserFollow struct {
-	Id     int64  `json:"id" orm:"pk;auto"`
-	Fans   *Users `json:"fans_uid" orm:"null;rel(one)"`   // 关注人的UID
-	Friend *Users `json:"friend_uid" orm:"null;rel(one)"` // 被关注人的uid
+	Id        int64 `json:"id" orm:"pk;auto"`
+	FansUid   int64 `json:"fans_uid" orm:"null;index"`   // 关注人的UID
+	FriendUid int64 `json:"friend_uid" orm:"null;index"` // 被关注人的uid
 
 	AddTime time.Time `json:"add_time" orm:"auto_now_add;type(datetime)"` // 添加时间
 	Ip      string    `json:"ip" valid:"IP"`                              // 客户端ip
@@ -26,12 +26,6 @@ func init() {
 }
 
 func AddUserFollow(t *Transaction, fans, friend int64) bool {
-	if t == nil {
-		t = NewTr()
-		t.Begin()
-		defer t.End()
-	}
-
 	if fans == friend {
 		return true
 	}
@@ -47,8 +41,8 @@ func AddUserFollow(t *Transaction, fans, friend int64) bool {
 	}
 
 	m := &UserFollow{
-		Fans:   &Users{Id: fans},
-		Friend: &Users{Id: friend},
+		FansUid:   fans,
+		FriendUid: friend,
 	}
 	_, ok := t.Insert(m)
 	if !ok {
@@ -66,21 +60,21 @@ func AddUserFollow(t *Transaction, fans, friend int64) bool {
 }
 
 func UFollowExistedById(fans, friend int64) bool {
-	return NewTr().Query("Users").Filter("Fans", fans).
-		Filter("Friend", friend).Exist()
+	return NewTr().Query("UserFollow").Filter("FansUId", fans).
+		Filter("FriendUId", friend).Exist()
 }
 
 func updateUFollowRelation(t *Transaction, uid int64) bool {
-	fansc, ok1 := t.Count("UserFollow", "Friend", uid)
+	fansc, ok1 := t.Count("UserFollow", "FriendUId", uid)
 	if !ok1 {
 		return false
 	}
 
-	friendc, ok2 := t.Count("UserFollow", "Fans", uid)
+	friendc, ok2 := t.Count("UserFollow", "FansUId", uid)
 	if !ok2 {
 		return false
 	}
 
-	return t.UpdateById("User", uid,
+	return t.UpdateById("Users", uid,
 		orm.Params{"FansCount": fansc, "FriendCount": friendc})
 }

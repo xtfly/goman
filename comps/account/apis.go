@@ -30,18 +30,12 @@ func ApiCheckUserName(c *macaron.Context) {
 }
 
 // POST /api/account/signup/
-func ApiUserSignup(c *macaron.Context, f SignupForm, cpt *captcha.Captcha,
-	a token.TokenService, sf *session.Flash, ss session.Store) {
-	if a.ValidToken(c.RemoteAddr(), f.CsrfToken) {
+func ApiUserSignup(f SignupForm, c *macaron.Context, cpt *captcha.Captcha,
+	a token.TokenService, ss session.Store) {
+	if !a.ValidToken(c.RemoteAddr(), f.CsrfToken) {
 		c.JSON(200, comps.NewRestErrResp(-1, "非法的跨站请求"))
 		return
 	}
-
-	// if input invalid, will store user_name & email
-	defer func() {
-		sf.Set("email", f.Email)
-		sf.Set("user_name", f.Name)
-	}()
 
 	if !cpt.VerifyReq(c.Req) {
 		c.JSON(200, comps.NewRestErrResp(-1, "请填写正确的验证码"))
@@ -57,7 +51,7 @@ func ApiUserSignup(c *macaron.Context, f SignupForm, cpt *captcha.Captcha,
 
 	// 如果不需要email验证
 	if boot.SysSetting.Ra.RegisterValidType == models.RegValidNone ||
-		u.Group.Id == models.GroupNotValidated ||
+		u.GroupId != models.GroupNotValidated ||
 		u.ValidEmail {
 		SetSigninCookies(c, u, a, ss)
 		c.JSON(200, comps.NewRestRedirectResp("/h/firstlogin"))
@@ -80,6 +74,22 @@ func SetSigninCookies(c *macaron.Context, u *models.Users, a token.TokenService,
 	t, _ := a.GenUserToken(c.RemoteAddr(), u.Id, 24*60, token.TokenUser)
 	c.SetCookie("utoken", t, 24*60*60)
 	ss.Set("utoken", t)
+
+	/*
+		cookie := &http.Cookie{
+			Name:
+			Value:    sid,
+			Path:
+			HttpOnly:
+			Secure:
+			Domain:
+		}
+	*/
+}
+
+func CleanCookies(c *macaron.Context, ss session.Store) {
+	c.SetCookie("utoken", "", -60*60)
+	ss.Release()
 }
 
 func ApiSignin(c *macaron.Context) {

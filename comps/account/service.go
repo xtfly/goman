@@ -113,7 +113,7 @@ func (s *AccountService) CheckSignup(f SignupForm) (string, bool) {
 		return "用户名已被注册或包含敏感词或系统保留字", false
 	}
 
-	if kits.IsEmail(f.Email) || models.UserExistedByEmail(f.Email) {
+	if !kits.IsEmail(f.Email) || models.UserExistedByEmail(f.Email) {
 		return "EMail 已经被使用, 或格式不正确", false
 	}
 
@@ -154,13 +154,14 @@ func (s *AccountService) Signup(f SignupForm, clientip string) (*models.Users, s
 	u.City = f.City
 	u.Signature = f.Signature
 	u.RegIp = clientip
-	u.Group = &models.UsersGroup{Id: models.GroupNotValidated} // 未验证会员
+	u.GroupId = models.GroupNotValidated // 未验证会员
 	if invitation != nil && f.Email == invitation.Email {
 		u.ValidEmail = true
-		u.Group = &models.UsersGroup{Id: models.GroupNormal} //  验证会员
+		u.GroupId = models.GroupNormal //  验证会员
 	}
 
-	t := models.NewTr()
+	t := models.NewTr().Begin()
+	defer t.End()
 	uid, ok := u.Add(t)
 	if !ok {
 		return nil, "内部系统错误", false
@@ -188,8 +189,8 @@ func (s *AccountService) CheckSignin(m *models.Users) (string, bool) {
 	}
 
 	if boot.SysSetting.Ra.SiteClose &&
-		m.Group.Id != models.GroupSuperAdmin &&
-		m.Group.Id != models.GroupWebAdmin {
+		m.GroupId != models.GroupSuperAdmin &&
+		m.GroupId != models.GroupWebAdmin {
 		return boot.SysSetting.Ra.SiteNotice, false
 	}
 

@@ -17,9 +17,9 @@ type Feature struct {
 
 //专题与话题关联
 type FeatureTopic struct {
-	Id      int64    `json:"id" orm:"pk;auto"`                                   //ID
-	Feature *Feature `json:"feature_id" orm:"rel(one);column(feature_id);index"` //专题ID
-	Topic   *Topic   `json:"topic_id" orm:"rel(one);column(topic_id);index"`     //话题ID
+	Id  int64 `json:"id" orm:"pk;auto"`       //ID
+	Fid int64 `json:"feature_id" orm:"index"` //专题ID
+	Tid int64 `json:"topic_id" orm:"index"`   //话题ID
 }
 
 func init() {

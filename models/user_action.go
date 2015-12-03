@@ -37,8 +37,8 @@ func (u *UserActionHistory) TableIndex() [][]string {
 }
 
 type UserActionHistoryData struct {
-	Id      int64              `json:"id" orm:"pk;auto"`
-	History *UserActionHistory `json:"hid" orm:"null;rel(one)"` // OneToOne relation
+	Id  int64 `json:"id" orm:"pk;auto"`
+	Hid int64 `json:"hid" orm:"null;inde"` // OneToOne UserActionHistory
 
 	AssContext  string `json:"associate_content" orm:"type(text);null"`  // 关联
 	AssAttached int64  `json:"associate_attached" orm:"type(text);null"` //
@@ -46,8 +46,8 @@ type UserActionHistoryData struct {
 }
 
 type UserActionnHistoryFresh struct {
-	Id            int64              `json:"id" orm:"pk;auto"`
-	ActionHistory *UserActionHistory `json:"hid" orm:"null;rel(one)"` // OneToOne relation
+	Id  int64 `json:"id" orm:"pk;auto"`
+	Hid int64 `json:"hid" orm:"null;inde"` // OneToOne UserActionHistory
 
 	AssId     int64 `json:"associate_id" orm:"default(0);index"` // 关联ID
 	AssType   int8  `json:"associate_type" orm:"default(0)"`     // 关联类型: 1 问题 2 回答 3 评论 4 话题

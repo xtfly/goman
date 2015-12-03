@@ -14,7 +14,7 @@ type WorkExperience struct {
 	StartYear   time.Time `json:"start_year" orm:"type(date)"` // 开始年份
 	EndYear     time.Time `json:"end_year" orm:"type(date)"`   // 开始年份
 	CompanyName string    `json:"company_name" orm:"null"`     // 公司名
-	Job         *Jobs     `json:"job_id" orm:"null;rel(one)"`  // OneToOne relation
+	JobId       int64     `json:"job_id" orm:"null"`           // OneToOne relation
 
 	AddTime time.Time `json:"add_time" orm:"auto_now_add;type(datetime)"` // 添加时间
 }

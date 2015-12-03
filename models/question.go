@@ -23,11 +23,11 @@ type Question struct {
 	AgainstCount int `json:"against_count" orm:"default(0);index"` //回复反对数总和
 	ThanksCount  int `json:"thanks_count" orm:"default(0);index"`  //感谢数量
 
-	ActionHistoryId int64     `json:"best_answer" orm:"defualt(0)"`                         //动作的记录表的关连id
-	BestAnswer      int64     `json:"best_answer" orm:"defualt(0);index"`                   //最佳回复ID
-	LastAnswer      int64     `json:"last_answer" orm:"defualt(0);index"`                   //最后回答ID
-	Category        *Category `json:"category_id" orm:"rel(one);column(category_id);index"` //
-	RecvEmailId     int64     `json:"received_email_id" orm:"defualt(0);index"`
+	ActionHistoryId int64 `json:"best_answer" orm:"defualt(0)"`       //动作的记录表的关连id
+	BestAnswer      int64 `json:"best_answer" orm:"defualt(0);index"` //最佳回复ID
+	LastAnswer      int64 `json:"last_answer" orm:"defualt(0);index"` //最后回答ID
+	CatId           int64 `json:"category_id" orm:"index"`            //
+	RecvEmailId     int64 `json:"received_email_id" orm:"defualt(0);index"`
 
 	PopularValue       int64 `json:"popular_value" orm:"defualt(0);index"`                 //
 	PopularValueUpdate int64 `json:"popular_value_update" orm:"type(datetime);null;index"` //
@@ -50,20 +50,20 @@ type Question struct {
 
 //问题评论列表
 type QuestionComments struct {
-	Id       int64     `json:"id" orm:"pk;auto"`
-	Uid      int64     `json:"uid" orm:"index"`                                  // 用户ID
-	Question *Question `json:"-" orm:"index;rel(one);column(question_id)"`       //
-	Message  string    `json:"message" orm:"type(text);null"`                    //内容
-	AddTime  time.Time `json:"add_time" orm:"auto_now_add;type(datetime);index"` //添加时间
+	Id      int64     `json:"id" orm:"pk;auto"`
+	Uid     int64     `json:"uid" orm:"index"`                                  // 用户ID
+	Qid     int64     `json:"qid" orm:"index"`                                  //
+	Message string    `json:"message" orm:"type(text);null"`                    //内容
+	AddTime time.Time `json:"add_time" orm:"auto_now_add;type(datetime);index"` //添加时间
 }
 
 //邀请问答
 type QuestionInvite struct {
-	Id           int64     `json:"id" orm:"pk;auto"`
-	Question     *Question `json:"-" orm:"index;rel(one);column(question_id)"` //
-	SenderUid    int64     `json:"sender_uid" orm:"index"`                     //
-	RecipientUid int64     `json:"recipient_uid" orm:"index"`                  //
-	Email        string    `json:"email" orm:"size(128);null;index"`           //受邀Email
+	Id           int64  `json:"id" orm:"pk;auto"`
+	Qid          int64  `json:"qid" orm:"index"`
+	SenderUid    int64  `json:"sender_uid" orm:"index"`           //
+	RecipientUid int64  `json:"recipient_uid" orm:"index"`        //
+	Email        string `json:"email" orm:"size(128);null;index"` //受邀Email
 
 	AddTime       time.Time `json:"add_time" orm:"auto_now_add;type(datetime)"` //添加时间
 	AvailableTime time.Time `json:"available_time" orm:"null;type(datetime)"`   //生效时间
@@ -72,27 +72,27 @@ type QuestionInvite struct {
 //问题感谢列表
 type QuestionThanks struct {
 	Id       int64     `json:"id" orm:"pk;auto"`
-	Uid      int64     `json:"uid" orm:"index"`                            // 用户ID
-	Question *Question `json:"-" orm:"index;rel(one);column(question_id)"` //
-	UserName string    `json:"user_name" orm:"size(255);null"`             //
-	Time     time.Time `json:"time" orm:"auto_now_add;type(datetime)"`     //添加时间
+	Uid      int64     `json:"uid" orm:"index"`                        // 用户ID
+	Qid      int64     `json:"qid" orm:"index"`                        //
+	UserName string    `json:"user_name" orm:"size(255);null"`         //
+	Time     time.Time `json:"time" orm:"auto_now_add;type(datetime)"` //添加时间
 }
 
 //问题关注表
 type QuestionFocus struct {
-	Id       int64     `json:"id" orm:"pk;auto"`
-	Uid      int64     `json:"uid" orm:"index"`                            // 用户ID
-	Question *Question `json:"-" orm:"index;rel(one);column(question_id)"` //
-	Time     time.Time `json:"time" orm:"auto_now_add;type(datetime)"`     //添加时间
+	Id   int64     `json:"id" orm:"pk;auto"`
+	Uid  int64     `json:"uid" orm:"index"`                        // 用户ID
+	Qid  int64     `json:"qid" orm:"index"`                        //
+	Time time.Time `json:"time" orm:"auto_now_add;type(datetime)"` //添加时间
 }
 
 //问题不感兴趣表
 type QuestionUninterested struct {
 	Id       int64     `json:"id" orm:"pk;auto"`
-	Uid      int64     `json:"uid" orm:"index"`                            // 用户ID
-	Question *Question `json:"-" orm:"index;rel(one);column(question_id)"` //
-	UserName string    `json:"user_name" orm:"size(255);null"`             //
-	Time     time.Time `json:"time" orm:"auto_now_add;type(datetime)"`     //添加时间
+	Uid      int64     `json:"uid" orm:"index"`                        // 用户ID
+	Qid      int64     `json:"qid" orm:"index"`                        //
+	UserName string    `json:"user_name" orm:"size(255);null"`         //
+	Time     time.Time `json:"time" orm:"auto_now_add;type(datetime)"` //添加时间
 }
 
 func init() {

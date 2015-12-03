@@ -68,7 +68,7 @@ type UserPermission struct {
 	AnswerShow    int `json:"answer_show"`
 }
 
-const UPermissionOn = 1
+const UPermissionOn = 1 //用户权限功能是否开启
 
 type ApprovalTime struct {
 	Start time.Time `json:"start"`

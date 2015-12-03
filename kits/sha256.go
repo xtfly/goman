@@ -38,7 +38,7 @@ func hmacSha256(plaintext, salt string) string {
 }
 
 // generate a hmac sha256 string
-func GenHashStr(plaintext string, saltlen int) string {
+func GenHmacSha256(plaintext string, saltlen int) string {
 	salt := getSalt(sha256saltLen)
 	encrypted := hmacSha256(plaintext, salt)
 	return encrypted

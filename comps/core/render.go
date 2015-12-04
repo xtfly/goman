@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"html"
 	"reflect"
 	"strings"
@@ -11,14 +10,21 @@ import (
 	"github.com/go-macaron/captcha"
 	"github.com/go-macaron/session"
 	"github.com/xtfly/goman/boot"
+	"github.com/xtfly/goman/comps"
 	"github.com/xtfly/goman/models"
 	"gopkg.in/macaron.v1"
 )
 
 type Render struct {
 	*macaron.Context
+	Session  session.Store
 	Uid      int64
-	UserInfo *models.Users
+	UserInfo *UserInfo
+}
+
+type UserInfo struct {
+	models.Users
+	Group *models.UsersGroup
 }
 
 func NewRender(c *macaron.Context) *Render {
@@ -29,10 +35,8 @@ func NewRender(c *macaron.Context) *Render {
 }
 
 func (c *Render) defDatas() *Render {
-	c.Data["X_UA_COMPATIBLE"] = boot.X_UA_COMPATIBLE
 	c.Data["VERSION_BUILD"] = boot.VERSION_BUILD
 	c.Data["sys"] = boot.SysSetting
-	c.Data["uid"] = c.Uid
 	return c
 }
 
@@ -58,7 +62,8 @@ func (c *Render) defJs() *Render {
 
 func (c *Render) AddCss(css ...string) *Render {
 	for _, f := range css {
-		c.Data["css_files"] = append(c.Data["css_files"].([]string), boot.SysSetting.Si.Static+"/front/css/"+f)
+		c.Data["css_files"] = append(c.Data["css_files"].([]string),
+			boot.SysSetting.Si.Static+"/front/css/"+boot.SysSetting.Ps.UiStyle+"/"+f)
 	}
 	return c
 }
@@ -76,17 +81,9 @@ func (c *Render) RHTML(sc int, tn string, data ...interface{}) {
 }
 
 func (c *Render) SetCaptcha(cpt *captcha.Captcha) {
-	SetCaptcha(c.Context, cpt)
-}
-
-func SetCaptcha(c *macaron.Context, cpt *captcha.Captcha) {
-	cptvalue, err := cpt.CreateCaptcha()
-	if err != nil {
-		return
-	}
-
-	c.Data["captcha_id"] = cptvalue
-	c.Data["captcha_url"] = fmt.Sprintf("%s%s%s.png", cpt.SubURL, cpt.URLPrefix, cptvalue)
+	ci := comps.NewCaptcha(cpt)
+	c.Data["captcha_id"] = ci.CaptchaId
+	c.Data["captcha_url"] = ci.CaptchaUrl
 }
 
 func (c *Render) RedirectMsgWithDelay(msg, url string, interval int) {
@@ -100,20 +97,20 @@ func (c *Render) RedirectMsg(msg, url string) {
 	c.RedirectMsgWithDelay(msg, url, 5)
 }
 
-type Crumb struct {
+type crumb struct {
 	Name string
 	Url  string
 }
 
-//产生面包屑导航数据,并生成浏览器标题供前端使用
+// 产生面包屑导航数据,并生成浏览器标题供前端使用
 func (c *Render) SetCrumb(name string, url string) {
 	sname := html.UnescapeString(name)
-	crumbtpl := ([]*Crumb)(nil)
-	if crumb := c.Data["crumb"]; crumb == nil {
-		crumbtpl = []*Crumb{&Crumb{Name: sname, Url: url}}
+	crumbtpl := ([]*crumb)(nil)
+	if scrumb := c.Data["crumb"]; scrumb == nil {
+		crumbtpl = []*crumb{&crumb{Name: sname, Url: url}}
 	} else {
-		crumbtpl = crumb.([]*Crumb)
-		crumbtpl = append(crumbtpl, &Crumb{Name: sname, Url: url})
+		crumbtpl = scrumb.([]*crumb)
+		crumbtpl = append(crumbtpl, &crumb{Name: sname, Url: url})
 	}
 	c.Data["crumb"] = crumbtpl
 
@@ -126,6 +123,8 @@ func (c *Render) SetCrumb(name string, url string) {
 }
 
 func (c *Render) init() *Render {
+	c.Session = c.sessionStore()
+
 	// 如果登录用户，则加载用户信息
 	// c.Data["uid"]是token插件设置
 	uid := c.Data["uid"]
@@ -136,46 +135,49 @@ func (c *Render) init() *Render {
 	}
 
 	c.defDatas().defCss().defJs()
-
-	//
 	c.SetCrumb(boot.SysSetting.Si.SiteName, "/")
 
 	return c
 }
 
 func (c *Render) loadUser() {
-	ss := c.getSessionStore()
-	if ss == nil {
+	if c.Session == nil {
 		return
 	}
 
-	uinfo := ss.Get("uinfo")
+	uinfo := c.Session.Get("uinfo")
 	if uinfo == nil {
-		c.UserInfo = &models.Users{Id: c.Uid}
+		c.UserInfo = &UserInfo{}
+		c.UserInfo.Id = c.Uid
 		t := models.NewTr()
-
+		// load the user info from db
 		if !t.Read(c.UserInfo) {
 			return
 		}
 
-		// if !t.Read(c.UserInfo.Group) {
-		// 	return
-		// }
+		// load the user group info from db
+		c.UserInfo.Group = &models.UsersGroup{Id: c.UserInfo.GroupId}
+		if !t.Read(c.UserInfo.Group) {
+			return
+		}
 
-		ss.Set("uinfo", c.UserInfo)
+		c.Session.Set("uinfo", c.UserInfo)
 	} else {
-		c.UserInfo = uinfo.(*models.Users)
+		c.UserInfo = uinfo.(*UserInfo)
 	}
+
+	c.Data["u"] = c.UserInfo
 }
 
-func (c *Render) getSessionStore() session.Store {
+func (c *Render) sessionStore() session.Store {
 	ss := (*session.Store)(nil)
 	sst := reflect.TypeOf(ss).Elem()
-	log.Info(sst)
+	//log.Info(sst)
 	ssv := c.GetVal(sst)
 	if ssv.CanInterface() {
 		return ssv.Interface().(session.Store)
 	}
+
 	log.Error("Get session.Store failed.")
 	return nil
 }

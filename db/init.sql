@@ -138,16 +138,16 @@ INSERT INTO `jobs` (`id`, `name`) VALUES
 
 DELETE FROM `users_group`;
 INSERT INTO `users_group` (`id`, `type`, `custom`, `name`, `repu_lower`, `repu_higer`, `repu_factor`, `permission`) VALUES
-(1, 0, 0, '超级管理员', 0, 0, 5, '"is_admin":1,"is_moderator":1,"publish_question":1,"edit_question":1,"edit_topic":1,"manage_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_article":1,"edit_question_topic":1,"publish_comment":1'),
-(2, 0, 0, '前台管理员', 0, 0, 4, '"is_moderator":1,"publish_question":1,"edit_question":1,"edit_topic":1,"manage_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_article":1,"edit_question_topic":1,"publish_comment":1'),
-(3, 0, 0, '未验证会员', 0, 0, 0, '"publish_question":1,"human_valid":1,"question_valid_hour":2,"answer_valid_hour":2'),
-(4, 0, 0, '普通会员', 0, 0, 0, '"publish_question":1,"question_valid_hour":10,"answer_valid_hour":10'),
-(5, 1, 0, '注册会员', 0, 100, 1, '"publish_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"question_valid_hour":5,"answer_valid_hour":5'),
-(6, 1, 0, '初级会员', 100, 200, 1, '"publish_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"edit_question_topic":1,"question_valid_hour":5,"answer_valid_hour":5'),
-(7, 1, 0, '中级会员', 200, 500, 1, '"publish_question":1,"edit_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"publish_comment":1'),
-(8, 1, 0, '高级会员', 500, 1000, 1, '"publish_question":1,"edit_question":1,"edit_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"publish_comment":1'),
-(9, 1, 0, '核心会员', 1000, 999999, 1, '"publish_question":1,"edit_question":1,"edit_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"publish_comment":1'),
-(10, 0, 0, '游客', 0, 0, 0, '"visit_site":1,"visit_explore":1,"search_avail":1,"visit_question":1,"visit_topic":1,"visit_feature":1,"visit_people":1,"visit_chapter":5,"answer_show":1');
+(1, 0, 0, '超级管理员', 0, 0, 5, '{"is_admin":1,"is_moderator":1,"publish_question":1,"edit_question":1,"edit_topic":1,"manage_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_article":1,"edit_question_topic":1,"publish_comment":1}'),
+(2, 0, 0, '前台管理员', 0, 0, 4, '{"is_moderator":1,"publish_question":1,"edit_question":1,"edit_topic":1,"manage_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_article":1,"edit_question_topic":1,"publish_comment":1}'),
+(3, 0, 0, '未验证会员', 0, 0, 0, '{"publish_question":1,"human_valid":1,"question_valid_hour":2,"answer_valid_hour":2}'),
+(4, 0, 0, '普通会员', 0, 0, 0, '{"publish_question":1,"question_valid_hour":10,"answer_valid_hour":10}'),
+(5, 1, 0, '注册会员', 0, 100, 1, '{"publish_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"question_valid_hour":5,"answer_valid_hour":5}'),
+(6, 1, 0, '初级会员', 100, 200, 1, '{"publish_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"edit_question_topic":1,"question_valid_hour":5,"answer_valid_hour":5}'),
+(7, 1, 0, '中级会员', 200, 500, 1, '{"publish_question":1,"edit_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"publish_comment":1}'),
+(8, 1, 0, '高级会员', 500, 1000, 1, '{"publish_question":1,"edit_question":1,"edit_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"publish_comment":1}'),
+(9, 1, 0, '核心会员', 1000, 999999, 1, '{"publish_question":1,"edit_question":1,"edit_topic":1,"create_topic":1,"redirect_question":1,"upload_attach":1,"publish_url":1,"publish_article":1,"edit_question_topic":1,"publish_comment":1}'),
+(10, 0, 0, '游客', 0, 0, 0, '{"visit_site":1,"visit_explore":1,"search_avail":1,"visit_question":1,"visit_topic":1,"visit_feature":1,"visit_people":1,"visit_chapter":5,"answer_show":1}');
 
 DELETE FROM `category`;
 INSERT INTO `category`(`title`,`type`) VALUES

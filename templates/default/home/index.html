@@ -8,7 +8,7 @@
 					<div class="aw-mod aw-notification-box hide" id="index_notification">
 						<div class="mod-head common-head">
 							<h2>
-								<span class="pull-right"><a href="account/setting/privacy/#notifications" class="text-color-999"><i class="icon icon-setting"></i>通知设置</a></span>
+								<span class="pull-right"><a href="/a/setting/privacy/#notifications" class="text-color-999"><i class="icon icon-setting"></i>通知设置</a></span>
 								{% if uid %}
 								<i class="icon icon-bell"></i>新通知<em class="badge badge-important" name="notification_unread_num">{{u.NotificationUnread}}</em>
 								{% endif %}
@@ -48,5 +48,18 @@
 		</div>
 	</div>
 </div>
+
+{% if u and u.FirstLogin %}
+<script type="text/javascript" src="{{sys.Si.Static}}/front/js/fileupload.js"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+	$.get('/api/account/welcomemessage/', function (template) {
+		$('#aw-ajax-box').html(template);
+		$('body').addClass('modal-open');
+		welcome_step('1');
+	});
+});
+</script>
+{% endif %}
 
 {% include "../global/footer.html" %}

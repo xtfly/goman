@@ -184,6 +184,8 @@ var GOM = {
           }
 
           if ($('#captcha').length) {
+            $('#captcha_id').val(result.rsm.captcha_id);
+            $('#captcha').attr('src',result.rsm.captcha_url);
             $('#captcha').click();
           }
           break;
@@ -328,7 +330,7 @@ var GOM = {
   reload_comments_list: function(item_id, element_id, type_name) {
     $('#aw-comment-box-' + type_name + '-' + element_id + ' .aw-comment-list').html('<p align="center" class="aw-padding10"><i class="aw-loading"></i></p>');
 
-    $.get(G_BASE_URL + '/question/ajax/get_' + type_name + '_comments/' + type_name + '_id-' + item_id, function(data) {
+    $.get('/question/ajax/get_' + type_name + '_comments/' + type_name + '_id-' + item_id, function(data) {
       $('#aw-comment-box-' + type_name + '-' + element_id + ' .aw-comment-list').html(data);
     });
   },
@@ -484,7 +486,7 @@ var GOM = {
           GOM.Dropdown.bind_dropdown_list($('.aw-publish-box #quick_publish_question_content'), 'publish');
           GOM.Dropdown.bind_dropdown_list($('.aw-publish-box #aw_edit_topic_title'), 'topic');
           if (parseInt(data.category_enable) == 1) {
-            $.get(G_BASE_URL + '/publish/ajax/fetch_question_category/', function(result) {
+            $.get('/publish/ajax/fetch_question_category/', function(result) {
               GOM.Dropdown.set_dropdown_list('.aw-publish-box .dropdown', eval(result), data.category_id);
 
               $('.aw-publish-title .dropdown li a').click(function() {
@@ -521,7 +523,7 @@ var GOM = {
           break;
 
         case 'favorite':
-          $.get(G_BASE_URL + '/favorite/ajax/get_favorite_tags/', function(result) {
+          $.get('/favorite/ajax/get_favorite_tags/', function(result) {
             var html = ''
 
             $.each(result, function(i, e) {
@@ -530,7 +532,7 @@ var GOM = {
 
             $('.aw-favorite-tag-list ul').append(html);
 
-            $.post(G_BASE_URL + '/favorite/ajax/get_item_tags/', {
+            $.post('/favorite/ajax/get_item_tags/', {
               'item_id': $('#favorite_form input[name="item_id"]').val(),
               'item_type': $('#favorite_form input[name="item_type"]').val()
             }, function(result) {
@@ -548,10 +550,10 @@ var GOM = {
             $(document).on('click', '.aw-favorite-tag-list ul li a', function() {
               var _this = this,
                 addClassFlag = true,
-                url = G_BASE_URL + '/favorite/ajax/update_favorite_tag/';
+                url = '/favorite/ajax/update_favorite_tag/';
 
               if ($(this).parents('li').hasClass('active')) {
-                url = G_BASE_URL + '/favorite/ajax/remove_favorite_tag/';
+                url = '/favorite/ajax/remove_favorite_tag/';
 
                 addClassFlag = false;
               }
@@ -581,18 +583,18 @@ var GOM = {
           break;
 
         case 'commentEdit':
-          $.get(G_BASE_URL + '/question/ajax/fetch_answer_data/' + data.answer_id, function(result) {
+          $.get('/question/ajax/fetch_answer_data/' + data.answer_id, function(result) {
             $('#editor_reply').html(result.answer_content.replace('&amp;', '&'));
 
             var editor = CKEDITOR.replace('editor_reply');
 
             if (UPLOAD_ENABLE == 'Y') {
-              var fileupload = new FileUpload('file', '.aw-edit-comment-box .aw-upload-box .btn', '.aw-edit-comment-box .aw-upload-box .upload-container', G_BASE_URL + '/publish/ajax/attach_upload/id-answer__attach_access_key-' + ATTACH_ACCESS_KEY, {
+              var fileupload = new FileUpload('file', '.aw-edit-comment-box .aw-upload-box .btn', '.aw-edit-comment-box .aw-upload-box .upload-container', '/publish/ajax/attach_upload/id-answer__attach_access_key-' + ATTACH_ACCESS_KEY, {
                 'insertTextarea': '.aw-edit-comment-box #editor_reply',
                 'editor': editor
               });
 
-              $.post(G_BASE_URL + '/publish/ajax/answer_attach_edit_list/', 'answer_id=' + data.answer_id, function(data) {
+              $.post('/publish/ajax/answer_attach_edit_list/', 'answer_id=' + data.answer_id, function(data) {
                 if (data['err']) {
                   return false;
                 } else {
@@ -626,7 +628,7 @@ var GOM = {
           break;
 
         case 'recommend':
-          $.get(G_BASE_URL + '/help/ajax/list/', function(result) {
+          $.get('/help/ajax/list/', function(result) {
             if (result && result != 0) {
               var html = '';
 
@@ -644,11 +646,11 @@ var GOM = {
 
               $(document).on('click', '.aw-recommend-box ul li a', function() {
                 var _this = $(this),
-                  url = G_BASE_URL + '/help/ajax/add_data/',
+                  url = '/help/ajax/add_data/',
                   removeClass = false;
 
                 if ($(this).parents('li').hasClass('active')) {
-                  url = G_BASE_URL + '/help/ajax/remove_data/';
+                  url = '/help/ajax/remove_data/';
 
                   removeClass = true;
                 }
@@ -808,7 +810,7 @@ var GOM = {
           //获取数据
           function _getdata(type, url) {
             if (type == 'user') {
-              $.get(G_BASE_URL + url + _this.attr('data-id'), function(result) {
+              $.get(url + _this.attr('data-id'), function(result) {
                 var focus = result.focus,
                   verified = result.verified,
                   focusTxt;
@@ -859,7 +861,7 @@ var GOM = {
               }, 'json');
             }
             if (type == 'topic') {
-              $.get(G_BASE_URL + url + _this.attr('data-id'), function(result) {
+              $.get(url + _this.attr('data-id'), function(result) {
                 var focus = result.focus,
                   focusTxt;
                 if (focus == false) {
@@ -1013,7 +1015,7 @@ var GOM = {
                   break;
                 }
               }
-              $.get(G_BASE_URL + '/search/ajax/search/?type=users&q=' + encodeURIComponent($(this).val().substring(flag, ti).replace('@', '')) + '&limit=' + limit, function(result) {
+              $.get('/search/ajax/search/?type=users&q=' + encodeURIComponent($(this).val().substring(flag, ti).replace('@', '')) + '&limit=' + limit, function(result) {
                 if ($('.aw-invite-dropdown')[0]) {
                   if (result.length != 0) {
                     var html = '';
@@ -1205,7 +1207,7 @@ GOM.User = {
         break;
     }
 
-    $.post(G_BASE_URL + url, data, function(result) {
+    $.post(url, data, function(result) {
       if (result.errno == 1) {
         if (result.rsm.type == 'add') {
           selector.addClass('active');
@@ -1251,13 +1253,13 @@ GOM.User = {
   // 删除草稿
   delete_draft: function(item_id, type) {
     if (type == 'clean') {
-      $.post(G_BASE_URL + '/account/ajax/delete_draft/', 'type=' + type, function(result) {
+      $.post('/account/ajax/delete_draft/', 'type=' + type, function(result) {
         if (result.errno != 1) {
           GOM.alert(result.err);
         }
       }, 'json');
     } else {
-      $.post(G_BASE_URL + '/account/ajax/delete_draft/', 'item_id=' + item_id + '&type=' + type, function(result) {
+      $.post('/account/ajax/delete_draft/', 'item_id=' + item_id + '&type=' + type, function(result) {
         if (result.errno != 1) {
           GOM.alert(result.err);
         }
@@ -1267,7 +1269,7 @@ GOM.User = {
 
   // 赞成投票
   agree_vote: function(selector, user_name, answer_id) {
-    $.post(G_BASE_URL + '/question/ajax/answer_vote/', 'answer_id=' + answer_id + '&value=1');
+    $.post('/question/ajax/answer_vote/', 'answer_id=' + answer_id + '&value=1');
 
     // 判断是否投票过
     if ($(selector).parents('.aw-item').find('.aw-agree-by').text().match(user_name)) {
@@ -1312,7 +1314,7 @@ GOM.User = {
 
   // 反对投票
   disagree_vote: function(selector, user_name, answer_id) {
-    $.post(G_BASE_URL + '/question/ajax/answer_vote/', 'answer_id=' + answer_id + '&value=-1', function(result) {});
+    $.post('/question/ajax/answer_vote/', 'answer_id=' + answer_id + '&value=-1', function(result) {});
 
     if ($(selector).hasClass('active')) {
       $(selector).removeClass('active');
@@ -1352,7 +1354,7 @@ GOM.User = {
   question_uninterested: function(selector, question_id) {
     selector.fadeOut();
 
-    $.post(G_BASE_URL + '/question/ajax/uninterested/', 'question_id=' + question_id, function(result) {
+    $.post('/question/ajax/uninterested/', 'question_id=' + question_id, function(result) {
       if (result.errno != '1') {
         GOM.alert(result.err);
       }
@@ -1361,7 +1363,7 @@ GOM.User = {
 
   // 回复折叠
   answer_force_fold: function(selector, answer_id) {
-    $.post(G_BASE_URL + '/question/ajax/answer_force_fold/', 'answer_id=' + answer_id, function(result) {
+    $.post('/question/ajax/answer_force_fold/', 'answer_id=' + answer_id, function(result) {
       if (result.errno != 1) {
         GOM.alert(result.err);
       } else if (result.errno == 1) {
@@ -1376,7 +1378,7 @@ GOM.User = {
 
   // 删除别人邀请我回复的问题
   question_invite_delete: function(selector, question_invite_id) {
-    $.post(G_BASE_URL + '/question/ajax/question_invite_delete/', 'question_invite_id=' + question_invite_id, function(result) {
+    $.post('/question/ajax/question_invite_delete/', 'question_invite_id=' + question_invite_id, function(result) {
       if (result.errno == 1) {
         selector.fadeOut();
       } else {
@@ -1387,7 +1389,7 @@ GOM.User = {
 
   // 邀请用户回答问题
   invite_user: function(selector, img) {
-    $.post(G_BASE_URL + '/question/ajax/save_invite/', {
+    $.post('/question/ajax/save_invite/', {
       'question_id': QUESTION_ID,
       'uid': selector.attr('data-id')
     }, function(result) {
@@ -1406,7 +1408,7 @@ GOM.User = {
 
   // 取消邀请用户回答问题
   disinvite_user: function(selector) {
-    $.get(G_BASE_URL + '/question/ajax/cancel_question_invite/question_id-' + QUESTION_ID + "__recipients_uid-" + selector.attr('data-id'), function(result) {
+    $.get('/question/ajax/cancel_question_invite/question_id-' + QUESTION_ID + "__recipients_uid-" + selector.attr('data-id'), function(result) {
       if (result.errno != -1) {
         $.each($('.aw-question-detail .invite-list a'), function(i, e) {
           if ($(this).attr('data-original-title') == selector.parents('.main').find('.aw-user-name').text()) {
@@ -1424,7 +1426,7 @@ GOM.User = {
 
   // 问题感谢
   question_thanks: function(selector, question_id) {
-    $.post(G_BASE_URL + '/question/ajax/question_thanks/', 'question_id=' + question_id, function(result) {
+    $.post('/question/ajax/question_thanks/', 'question_id=' + question_id, function(result) {
       if (result.errno != 1) {
         GOM.alert(result.err);
       } else if (result.rsm.action == 'add') {
@@ -1438,7 +1440,7 @@ GOM.User = {
 
   // 感谢评论回复者
   answer_user_rate: function(selector, type, answer_id) {
-    $.post(G_BASE_URL + '/question/ajax/question_answer_rate/', 'type=' + type + '&answer_id=' + answer_id, function(result) {
+    $.post('/question/ajax/question_answer_rate/', 'type=' + type + '&answer_id=' + answer_id, function(result) {
       if (result.errno != 1) {
         GOM.alert(result.err);
       } else if (result.errno == 1) {
@@ -1473,7 +1475,7 @@ GOM.User = {
 
   // 删除评论
   remove_comment: function(selector, type, comment_id) {
-    $.get(G_BASE_URL + '/question/ajax/remove_comment/type-' + type + '__comment_id-' + comment_id);
+    $.get('/question/ajax/remove_comment/type-' + type + '__comment_id-' + comment_id);
 
     selector.parents('.aw-comment-box li').fadeOut();
   },
@@ -1486,7 +1488,7 @@ GOM.User = {
       var rating = 0;
     }
 
-    $.post(G_BASE_URL + '/article/ajax/article_vote/', 'type=article&item_id=' + article_id + '&rating=' + rating, function(result) {
+    $.post('/article/ajax/article_vote/', 'type=article&item_id=' + article_id + '&rating=' + rating, function(result) {
 
       GOM.loading('hide');
 
@@ -1518,7 +1520,7 @@ GOM.User = {
       var rating = 0;
     }
 
-    $.post(G_BASE_URL + '/article/ajax/article_vote/', 'type=comment&item_id=' + comment_id + '&rating=' + rating, function(result) {
+    $.post('/article/ajax/article_vote/', 'type=comment&item_id=' + comment_id + '&rating=' + rating, function(result) {
       GOM.loading('hide');
 
       if (result.errno != 1) {
@@ -1535,7 +1537,7 @@ GOM.User = {
 
   // 创建收藏标签
   add_favorite_tag: function() {
-    $.post(G_BASE_URL + '/favorite/ajax/update_favorite_tag/', {
+    $.post('/favorite/ajax/update_favorite_tag/', {
       'item_id': $('#favorite_form input[name="item_id"]').val(),
       'item_type': $('#favorite_form input[name="item_type"]').val(),
       'tags': $('#favorite_form .add-input').val()
@@ -1666,36 +1668,36 @@ GOM.Dropdown = {
     var url;
     switch (type) {
       case 'search':
-        url = G_BASE_URL + '/search/ajax/search/?q=' + encodeURIComponent(data) + '&limit=5';
+        url = '/search/ajax/search/?q=' + encodeURIComponent(data) + '&limit=5';
         break;
 
       case 'publish':
-        url = G_BASE_URL + '/search/ajax/search/?type=questions&q=' + encodeURIComponent(data) + '&limit=5';
+        url = '/search/ajax/search/?type=questions&q=' + encodeURIComponent(data) + '&limit=5';
         break;
 
       case 'redirect':
-        url = G_BASE_URL + '/search/ajax/search/?q=' + encodeURIComponent(data) + '&type=questions&limit=30&is_question_id=1';
+        url = '/search/ajax/search/?q=' + encodeURIComponent(data) + '&type=questions&limit=30&is_question_id=1';
         break;
 
       case 'invite':
       case 'inbox':
-        url = G_BASE_URL + '/search/ajax/search/?type=users&q=' + encodeURIComponent(data) + '&limit=10';
+        url = '/search/ajax/search/?type=users&q=' + encodeURIComponent(data) + '&limit=10';
         break;
 
       case 'topic_question':
-        url = G_BASE_URL + '/search/ajax/search/?type=questions,articles&q=' + encodeURIComponent(data) + '&topic_ids=' + CONTENTS_RELATED_TOPIC_IDS + '&limit=50';
+        url = '/search/ajax/search/?type=questions,articles&q=' + encodeURIComponent(data) + '&topic_ids=' + CONTENTS_RELATED_TOPIC_IDS + '&limit=50';
         break;
 
       case 'topic':
-        url = G_BASE_URL + '/search/ajax/search/?type=topics&q=' + encodeURIComponent(data) + '&limit=10';
+        url = '/search/ajax/search/?type=topics&q=' + encodeURIComponent(data) + '&limit=10';
         break;
 
       case 'questions':
-        url = G_BASE_URL + '/search/ajax/search/?type=questions&q=' + encodeURIComponent(data) + '&limit=10';
+        url = '/search/ajax/search/?type=questions&q=' + encodeURIComponent(data) + '&limit=10';
         break;
 
       case 'articles':
-        url = G_BASE_URL + '/search/ajax/search/?type=articles&q=' + encodeURIComponent(data) + '&limit=10';
+        url = '/search/ajax/search/?type=articles&q=' + encodeURIComponent(data) + '&limit=10';
         break;
 
     }
@@ -1778,7 +1780,7 @@ GOM.Dropdown = {
           case 'redirect':
             $.each(result, function(i, a) {
               $(selector).parent().find('.aw-dropdown-list').append(Hogan.compile(AW_TEMPLATE.questionRedirectList).render({
-                'url': "'" + G_BASE_URL + "/question/ajax/redirect/', 'item_id=" + $(selector).attr('data-id') + "&target_id=" + a['search_id'] + "'",
+                'url': "'" + "/question/ajax/redirect/', 'item_id=" + $(selector).attr('data-id') + "&target_id=" + a['search_id'] + "'",
                 'name': a['name']
               }));
             });
@@ -1850,7 +1852,7 @@ GOM.Message = {
       return false;
     }
 
-    $.get(G_BASE_URL + '/home/ajax/notifications/', function(result) {
+    $.get('/home/ajax/notifications/', function(result) {
       $('#inbox_unread').html(Number(result.rsm.inbox_num));
 
       var last_unread_notification = G_UNREAD_NOTIFICATION;
@@ -1898,13 +1900,13 @@ GOM.Message = {
     if (notification_id) {
       selector.remove();
 
-      var url = G_BASE_URL + '/notifications/ajax/read_notification/notification_id-' + notification_id;
+      var url = '/notifications/ajax/read_notification/notification_id-' + notification_id;
     } else {
       if ($("#index_notification").length) {
         $("#index_notification").fadeOut();
       }
 
-      var url = G_BASE_URL + '/notifications/ajax/read_notification/';
+      var url = '/notifications/ajax/read_notification/';
     }
 
     $.get(url, function(result) {
@@ -1924,7 +1926,7 @@ GOM.Message = {
 
       $('#index_notification ul#notification_list').html('<p align="center" style="padding: 15px 0"><img src="' + G_STATIC_URL + '/common/loading_b.gif"/></p>');
 
-      $.get(G_BASE_URL + '/notifications/ajax/list/flag-0__page-0', function(result) {
+      $.get('/notifications/ajax/list/flag-0__page-0', function(result) {
         $('#index_notification ul#notification_list').html(result);
 
         GOM.Message.notification_show(5);
@@ -1932,7 +1934,7 @@ GOM.Message = {
     }
 
     if ($("#header_notification_list").length) {
-      $.get(G_BASE_URL + '/notifications/ajax/list/flag-0__limit-5__template-header_list', function(result) {
+      $.get('/notifications/ajax/list/flag-0__limit-5__template-header_list', function(result) {
         if (result.length) {
           $("#header_notification_list").html(result);
         } else {
@@ -1991,13 +1993,13 @@ GOM.Init = {
         // 动态插入commentBox
         switch ($(this).attr('data-type')) {
           case 'question':
-            var comment_form_action = G_BASE_URL + '/question/ajax/save_question_comment/question_id-' + $(this).attr('data-id');
-            var comment_data_url = G_BASE_URL + '/question/ajax/get_question_comments/question_id-' + $(this).attr('data-id');
+            var comment_form_action = '/question/ajax/save_question_comment/question_id-' + $(this).attr('data-id');
+            var comment_data_url = '/question/ajax/get_question_comments/question_id-' + $(this).attr('data-id');
             break;
 
           case 'answer':
-            var comment_form_action = G_BASE_URL + '/question/ajax/save_answer_comment/answer_id-' + $(this).attr('data-id');
-            var comment_data_url = G_BASE_URL + '/question/ajax/get_answer_comments/answer_id-' + $(this).attr('data-id');
+            var comment_form_action = '/question/ajax/save_answer_comment/answer_id-' + $(this).attr('data-id');
+            var comment_data_url = '/question/ajax/get_answer_comments/answer_id-' + $(this).attr('data-id');
             break;
         }
 
@@ -2103,28 +2105,28 @@ GOM.Init = {
                   break;
 
                 case 'question':
-                  $.post(G_BASE_URL + '/topic/ajax/save_topic_relation/', 'type=question&item_id=' + data_id + '&topic_title=' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()), function(result) {
+                  $.post('/topic/ajax/save_topic_relation/', 'type=question&item_id=' + data_id + '&topic_title=' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()), function(result) {
                     if (result.errno != 1) {
                       GOM.alert(result.err);
 
                       return false;
                     }
 
-                    _topic_editor.find('.tag-bar').prepend('<span class="topic-tag" data-id="' + result.rsm.topic_id + '"><a href="' + G_BASE_URL + '/topic/' + result.rsm.topic_id + '" class="text">' + _topic_editor.find('#aw_edit_topic_title').val() + '</a><a class="close"><i class="icon icon-delete"></i></a></span>').hide().fadeIn();
+                    _topic_editor.find('.tag-bar').prepend('<span class="topic-tag" data-id="' + result.rsm.topic_id + '"><a href="' + '/topic/' + result.rsm.topic_id + '" class="text">' + _topic_editor.find('#aw_edit_topic_title').val() + '</a><a class="close"><i class="icon icon-delete"></i></a></span>').hide().fadeIn();
 
                     _topic_editor.find('#aw_edit_topic_title').val('');
                   }, 'json');
                   break;
 
                 case 'article':
-                  $.post(G_BASE_URL + '/topic/ajax/save_topic_relation/', 'type=article&item_id=' + data_id + '&topic_title=' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()), function(result) {
+                  $.post('/topic/ajax/save_topic_relation/', 'type=article&item_id=' + data_id + '&topic_title=' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()), function(result) {
                     if (result.errno != 1) {
                       GOM.alert(result.err);
 
                       return false;
                     }
 
-                    _topic_editor.find('.tag-bar').prepend('<span class="topic-tag" data-id="' + result.rsm.topic_id + '"><a href="' + G_BASE_URL + '/topic/' + result.rsm.topic_id + '" class="text">' + _topic_editor.find('#aw_edit_topic_title').val() + '</a><a class="close"><i class="icon icon-delete"></i></a></span>').hide().fadeIn();
+                    _topic_editor.find('.tag-bar').prepend('<span class="topic-tag" data-id="' + result.rsm.topic_id + '"><a href="' + '/topic/' + result.rsm.topic_id + '" class="text">' + _topic_editor.find('#aw_edit_topic_title').val() + '</a><a class="close"><i class="icon icon-delete"></i></a></span>').hide().fadeIn();
 
                     _topic_editor.find('#aw_edit_topic_title').val('');
                   }, 'json');
@@ -2132,28 +2134,28 @@ GOM.Init = {
 
 
                 case 'topic':
-                  $.post(G_BASE_URL + '/topic/ajax/save_related_topic/topic_id-' + data_id, 'topic_title=' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()), function(result) {
+                  $.post('/topic/ajax/save_related_topic/topic_id-' + data_id, 'topic_title=' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()), function(result) {
                     if (result.errno != 1) {
                       GOM.alert(result.err);
 
                       return false;
                     }
 
-                    _topic_editor.find('.tag-bar').prepend('<span class="topic-tag"><a href="' + G_BASE_URL + '/favorite/tag-' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()) + '" class="text">' + _topic_editor.find('#aw_edit_topic_title').val() + '</a><a class="close"><i class="icon icon-delete"></i></a></span>').hide().fadeIn();
+                    _topic_editor.find('.tag-bar').prepend('<span class="topic-tag"><a href="' + '/favorite/tag-' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()) + '" class="text">' + _topic_editor.find('#aw_edit_topic_title').val() + '</a><a class="close"><i class="icon icon-delete"></i></a></span>').hide().fadeIn();
 
                     _topic_editor.find('#aw_edit_topic_title').val('');
                   }, 'json');
                   break;
 
                 case 'favorite':
-                  $.post(G_BASE_URL + '/favorite/ajax/update_favorite_tag/', 'item_id=' + data_id + '&item_type=' + _topic_editor.attr('data-item-type') + '&tags=' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()), function(result) {
+                  $.post('/favorite/ajax/update_favorite_tag/', 'item_id=' + data_id + '&item_type=' + _topic_editor.attr('data-item-type') + '&tags=' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()), function(result) {
                     if (result.errno != 1) {
                       GOM.alert(result.err);
 
                       return false;
                     }
 
-                    _topic_editor.find('.tag-bar').prepend('<span class="topic-tag"><a href="' + G_BASE_URL + '/favorite/tag-' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()) + '" class="text">' + _topic_editor.find('#aw_edit_topic_title').val() + '</a><a class="close"><i class="icon icon-delete"></i></a></span>').hide().fadeIn();
+                    _topic_editor.find('.tag-bar').prepend('<span class="topic-tag"><a href="' + '/favorite/tag-' + encodeURIComponent(_topic_editor.find('#aw_edit_topic_title').val()) + '" class="text">' + _topic_editor.find('#aw_edit_topic_title').val() + '</a><a class="close"><i class="icon icon-delete"></i></a></span>').hide().fadeIn();
 
                     _topic_editor.find('#aw_edit_topic_title').val('');
                   }, 'json');

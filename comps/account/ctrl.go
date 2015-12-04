@@ -2,7 +2,6 @@ package account
 
 import (
 	"github.com/go-macaron/captcha"
-	"github.com/go-macaron/session"
 	"github.com/xtfly/goman/boot"
 	"github.com/xtfly/goman/comps/core"
 	"github.com/xtfly/goman/models"
@@ -10,6 +9,7 @@ import (
 	"gopkg.in/macaron.v1"
 )
 
+//----------------------------------------------------------
 // /a/signup
 func GetSignupCtrl(c *macaron.Context, cpt *captcha.Captcha, a token.TokenService) {
 	r := core.NewRender(c)
@@ -35,36 +35,77 @@ func GetSignupCtrl(c *macaron.Context, cpt *captcha.Captcha, a token.TokenServic
 	}
 
 	r.AddCss("signup.css").AddJs("comps/signup.js")
-
 	r.SetCaptcha(cpt)
 
 	c.Data["jobs"] = models.AllJobs()
 	c.Data["csrf_token"], _ = a.GenSysToken(c.RemoteAddr(), 15)
-
 	r.RHTML(200, "account/signup")
 }
 
+//----------------------------------------------------------
 // /a/validemail/
-func GetValidEmailCtrl(c *macaron.Context, ss session.Store) {
+func GetValidEmailCtrl(c *macaron.Context) {
 	r := core.NewRender(c)
 
-	ve := ss.Get("validemail")
+	ve := r.Session.Get("validemail")
 	if ve == nil {
-		r.RedirectMsg("非法的URL请求！", "/")
+		r.RedirectMsg("非法的URL请求,或请求已过期！", "/")
 		return
 	} else {
 		r.Data["email"] = ve.(string)
-		ss.Delete("validemail")
+		r.Session.Delete("validemail")
 	}
 
+	u := &models.Users{Email: ve.(string)}
+	if !models.NewTr().Read(u, "Email") {
+		r.RedirectMsg("不存在此Email注册信息！", "/")
+		return
+	}
+
+	if u.ValidEmail {
+		CleanCookies(c, r.Session)
+		r.RedirectMsg("邮箱已通过验证，请返回登录", "/a/signin")
+		return
+	}
+
+	r.SetCrumb("邮件验证", "/a/validemail/")
 	r.AddCss("signup.css")
 	r.RHTML(200, "account/valid_email")
 }
 
+//----------------------------------------------------------
 // /a/signout/
-func GetLogoutCtrl(c *macaron.Context, ss session.Store) {
+func GetSignoutCtrl(c *macaron.Context) {
 	r := core.NewRender(c)
-	CleanCookies(c, ss)
+	CleanCookies(c, r.Session)
 	r.RedirectMsg("正在准备退出, 请稍候...", "/")
 	return
 }
+
+//----------------------------------------------------------
+// /a/signin/
+func GetSigninCtrl(c *macaron.Context) {
+	r := core.NewRender(c)
+
+	url := c.QueryEscape("url")
+	if r.UserInfo != nil {
+		if url != "" {
+			c.Resp.Header().Set("Location", url)
+		} else {
+			c.Redirect("/")
+			return
+		}
+	}
+
+	return_url := url
+	if return_url == "" {
+		return_url = r.Header().Get("HTTP_REFERER")
+	}
+	r.Data["return_url"] = return_url
+
+	r.SetCrumb("登录", "/a/signin/")
+	r.AddCss("signin.css").AddJs("comps/signin.js")
+	r.RHTML(200, "account/signin")
+}
+
+//----------------------------------------------------------

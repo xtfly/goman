@@ -10,7 +10,7 @@
       <!-- end logo -->
       <!-- 搜索框 -->
       <div class="aw-search-box  hidden-xs hidden-sm">
-        <form action="s/" class="navbar-search" id="global_search_form" method="post">
+        <form action="/s/" class="navbar-search" id="global_search_form" method="post">
           <input autocomplete="off" class="form-control search-query" id="aw-search-query" name="q" placeholder="搜索问题、话题或人" type="text"/>
           <span id="global_search_btns" onClick="$('#global_search_form').submit();" title="搜索">
             <i class="icon icon-search"></i>
@@ -163,11 +163,11 @@
       <!-- end 发起 -->
     </div>
   </div>
-  {% if uid and u.Email and !u.ValidEmail and !sys.Ra.RegisterValidType %}
+  {% if uid and u.Email and !u.ValidEmail and sys.Ra.RegisterValidType != 0 %}
   <div class="aw-email-verify">
     <div class="container text-center">
       你的邮箱 %s 还未验证,
-      <a onclick="AWS.ajax_request(G_BASE_URL + \'/a/api/send_valid_mail/\');">点击这里重新发送验证邮件</a>',
+      <a onclick="AWS.ajax_request(\'/api/account/sendvalidmail/\');">点击这里重新发送验证邮件</a>',
       {{u.Email}}
     </div>
   </div>

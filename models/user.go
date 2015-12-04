@@ -154,6 +154,10 @@ func (m *Users) Add(t *Transaction) (int64, bool) {
 }
 
 func (m *Users) CheckSignin(input string, password string) bool {
+	if input == "" || password == "" {
+		return false
+	}
+
 	f := "Email"
 	if strings.Contains(input, "@") {
 		m.Email = input
@@ -161,6 +165,7 @@ func (m *Users) CheckSignin(input string, password string) bool {
 		m.UserName = input
 		f = "UserName"
 	}
+
 	t := NewTr()
 	if !t.Read(m, f) {
 		return false

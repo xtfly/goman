@@ -6,7 +6,7 @@
         <h1>注册新用户</h1>
     </div>
     <div class="mod-body">
-        <form class="aw-register-form" action="/api/acount/signup/" method="post" id="register_form">
+        <form class="aw-register-form" action="/api/account/signup/" method="post" id="register_form">
             <ul>
                 <li class="alert alert-danger hide error_message text-left">
                     <i class="icon icon-delete"></i> <em></em>
@@ -58,7 +58,7 @@
                 {% if sys.Ra.RegisterCaptcha %}
                 <li class="aw-register-verify">
                   <li class="aw-register-verify">
-                      <img class="pull-right" id="captcha" onclick="this.src = '{{captcha_url}}?' + Math.floor(Math.random() * 10000);" src="{{captcha_url}}">
+                      <img class="pull-right" id="captcha" onclick="this.src = $('#captcha')[0].src +'?' + Math.floor(Math.random() * 10000);" src="{{captcha_url}}">
                       <input type="text" class="form-control" name="captcha" placeholder="验证码" />
                       <input type="hidden" name="captcha_id" value="{{captcha_id}}">
                       <input type="hidden" name="_csrf" value="{{csrf_token}}">

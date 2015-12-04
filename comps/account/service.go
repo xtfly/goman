@@ -4,27 +4,32 @@ import (
 	"fmt"
 	"strings"
 
+	"gopkg.in/macaron.v1"
+
 	"github.com/Unknwon/com"
+	"github.com/go-macaron/session"
 	"github.com/xtfly/goman/boot"
 	"github.com/xtfly/goman/kits"
 	"github.com/xtfly/goman/models"
+	"github.com/xtfly/goman/plugins/token"
 )
 
-type SignupForm struct {
-	Name      string `form:"user_name"`
-	Email     string `form:"email"`
-	Password  string `form:"password"`
-	Gender    int8   `form:"gender"`
-	JobId     string `form:"job_id"`
-	Province  string `form:"province"`
-	City      string `form:"city"`
-	Signature string `form:"signature"`
-	CsrfToken string `form:"_csrf"`
-	ICode     string `form:"icode"`
-	IEmail    string `form:"invitation_email"`
-	Agree     bool   `form:"agreement_chk"`
+//----------------------------------------------------------
+// 设置Cookie信息
+func SetSigninCookies(c *macaron.Context, u *models.Users, a token.TokenService, ss session.Store) {
+	t, _ := a.GenUserToken(c.RemoteAddr(), u.Id, 24*60, token.TokenUser)
+	c.SetCookie("utoken", t, 24*60*60) // Name, Value, MaxAge, Path, Domain, Secure, HttpOnly
+	ss.Set("utoken", t)
 }
 
+//----------------------------------------------------------
+// 清理Cookie信息
+func CleanCookies(c *macaron.Context, ss session.Store) {
+	c.SetCookie("utoken", "", -60*60)
+	ss.Release()
+}
+
+//----------------------------------------------------------
 type AccountService struct {
 }
 
@@ -32,6 +37,7 @@ func NewService() *AccountService {
 	return &AccountService{}
 }
 
+//----------------------------------------------------------
 //检查用户名中是否包含敏感词或用户信息保留字
 func (s *AccountService) CheckUsernameSensitiveWords(un string) bool {
 	if kits.SensitiveWordExists(un, boot.SysSetting.Cs.SensitiveWords) {
@@ -90,6 +96,22 @@ func (s *AccountService) CheckUsernameChar(un string) (string, bool) {
 	}
 
 	return "", true
+}
+
+//----------------------------------------------------------
+type SignupForm struct {
+	Name      string `form:"user_name"`
+	Email     string `form:"email"`
+	Password  string `form:"password"`
+	Gender    int8   `form:"gender"`
+	JobId     string `form:"job_id"`
+	Province  string `form:"province"`
+	City      string `form:"city"`
+	Signature string `form:"signature"`
+	CsrfToken string `form:"_csrf"`
+	ICode     string `form:"icode"`
+	IEmail    string `form:"invitation_email"`
+	Agree     bool   `form:"agreement_chk"`
 }
 
 func (s *AccountService) CheckSignup(f SignupForm) (string, bool) {
@@ -183,11 +205,20 @@ func (s *AccountService) Signup(f SignupForm, clientip string) (*models.Users, s
 	return u, "", true
 }
 
+//----------------------------------------------------------
+type SigninForm struct {
+	Input     string `form:"user_name"`
+	Password  string `form:"password"`
+	ReturnUrl string `form:"return_url"`
+	Cookies   bool   `form:"net_auto_login"`
+}
+
 func (s *AccountService) CheckSignin(m *models.Users) (string, bool) {
 	if m.Forbidden {
 		return "抱歉, 你的账号已经被禁止登录", false
 	}
 
+	// 关站了
 	if boot.SysSetting.Ra.SiteClose &&
 		m.GroupId != models.GroupSuperAdmin &&
 		m.GroupId != models.GroupWebAdmin {
@@ -197,8 +228,4 @@ func (s *AccountService) CheckSignin(m *models.Users) (string, bool) {
 	return "", true
 }
 
-type SigninForm struct {
-	Input     string `form:"name"`
-	Password  string `form:"password"`
-	ReturnUrl string `form:"return_url"`
-}
+//----------------------------------------------------------

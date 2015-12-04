@@ -2,6 +2,7 @@ package account
 
 import (
 	"strings"
+	"time"
 
 	"github.com/go-macaron/captcha"
 	"github.com/go-macaron/session"
@@ -12,6 +13,7 @@ import (
 	"gopkg.in/macaron.v1"
 )
 
+//----------------------------------------------------------
 // POST /api/account/check/
 func ApiCheckUserName(c *macaron.Context) {
 	un := strings.TrimSpace(c.QueryEscape("username"))
@@ -29,6 +31,7 @@ func ApiCheckUserName(c *macaron.Context) {
 	c.JSON(200, comps.NewRestErrResp(1, ""))
 }
 
+//----------------------------------------------------------
 // POST /api/account/signup/
 func ApiUserSignup(f SignupForm, c *macaron.Context, cpt *captcha.Captcha,
 	a token.TokenService, ss session.Store) {
@@ -38,14 +41,14 @@ func ApiUserSignup(f SignupForm, c *macaron.Context, cpt *captcha.Captcha,
 	}
 
 	if !cpt.VerifyReq(c.Req) {
-		c.JSON(200, comps.NewRestErrResp(-1, "请填写正确的验证码"))
+		c.JSON(200, comps.NewRestResp(comps.NewCaptcha(cpt), -1, "请填写正确的验证码"))
 		return
 	}
 
 	s := NewService()
 	u, msg, ok := s.Signup(f, c.RemoteAddr())
 	if !ok {
-		c.JSON(200, comps.NewRestErrResp(-1, msg))
+		c.JSON(200, comps.NewRestResp(comps.NewCaptcha(cpt), -1, msg))
 		return
 	}
 
@@ -69,29 +72,48 @@ func ApiUserSignup(f SignupForm, c *macaron.Context, cpt *captcha.Captcha,
 	return
 }
 
-// 设置Cookie信息
-func SetSigninCookies(c *macaron.Context, u *models.Users, a token.TokenService, ss session.Store) {
-	t, _ := a.GenUserToken(c.RemoteAddr(), u.Id, 24*60, token.TokenUser)
-	c.SetCookie("utoken", t, 24*60*60)
-	ss.Set("utoken", t)
+//----------------------------------------------------------
+// POST /api/account/signin/
+func ApiSignin(c *macaron.Context, f SigninForm, a token.TokenService, ss session.Store) {
+	u := &models.Users{}
+	if !u.CheckSignin(f.Input, f.Password) {
+		c.JSON(200, comps.NewRestErrResp(-1, "输入正确的帐号或密码"))
+		return
+	}
 
-	/*
-		cookie := &http.Cookie{
-			Name:
-			Value:    sid,
-			Path:
-			HttpOnly:
-			Secure:
-			Domain:
-		}
-	*/
-}
+	s := NewService()
+	if err, ok := s.CheckSignin(u); !ok {
+		c.JSON(200, comps.NewRestErrResp(-1, err))
+		return
+	}
 
-func CleanCookies(c *macaron.Context, ss session.Store) {
-	c.SetCookie("utoken", "", -60*60)
-	ss.Release()
-}
+	// 需要审批
+	if u.GroupId == models.GroupNotValidated &&
+		boot.SysSetting.Ra.RegisterValidType == models.RegValidApproval {
+		c.JSON(200, comps.NewRestRedirectResp("/a/validapproval/"))
+		return
+	}
 
-func ApiSignin(c *macaron.Context) {
+	//
+	u.LastLogin = time.Now()
+	u.LastIp = c.RemoteAddr()
+	u.LoginCount = u.LoginCount + 1
+	if _, ok := models.NewTr().Update(u, "LastLogin", "LastIp", "LoginCount"); !ok {
+		// todo log
+	}
 
+	CleanCookies(c, ss)
+	SetSigninCookies(c, u, a, ss)
+
+	url := ""
+	if !u.ValidEmail && boot.SysSetting.Ra.RegisterValidType == models.RegValidEmail {
+		ss.Set("validemail", u.Email)
+		url = "/a/validemail/"
+	} else if u.FirstLogin {
+		url = "/h/firstlogin/"
+	} else if f.ReturnUrl != "" {
+		url = f.ReturnUrl
+	}
+
+	c.JSON(200, comps.NewRestRedirectResp(url))
 }

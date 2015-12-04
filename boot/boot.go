@@ -25,8 +25,7 @@ var (
 	AppPath = ""
 
 	//
-	X_UA_COMPATIBLE = "IE=edge,Chrome=1"
-	VERSION_BUILD   = "20151118"
+	VERSION_BUILD = "20151118"
 
 	// System setting
 	SysSetting *models.GlobalSetting

@@ -6,6 +6,7 @@ import (
 	"github.com/go-macaron/captcha"
 )
 
+//----------------------------------------------------------
 //格式化系统返回消息
 //格式化系统返回的消息 json 数据包给前端进行处理
 type RestResp struct {
@@ -38,6 +39,7 @@ func NewRestRedirectResp(url string) *RestResp {
 	}
 }
 
+//----------------------------------------------------------
 // 验证码信息
 type CaptchaInfo struct {
 	CaptchaId  string `json:"captcha_id"`
@@ -53,5 +55,28 @@ func NewCaptcha(cpt *captcha.Captcha) *CaptchaInfo {
 	return &CaptchaInfo{
 		CaptchaId:  cptvalue,
 		CaptchaUrl: fmt.Sprintf("%s%s%s.png", cpt.SubURL, cpt.URLPrefix, cptvalue),
+	}
+}
+
+//----------------------------------------------------------
+type UploadFileErrRsp struct {
+	Error string `json:"error"`
+}
+
+type UploadFileRsp struct {
+	Success bool   `json:"success"`
+	Thumb   string `json:"thumb"`
+}
+
+func NewUploadFileErrRsp(err string) *UploadFileErrRsp {
+	return &UploadFileErrRsp{
+		Error: err,
+	}
+}
+
+func NewUploadFileRsp(thumb string) *UploadFileRsp {
+	return &UploadFileRsp{
+		Success: true,
+		Thumb:   thumb,
 	}
 }

@@ -2,11 +2,12 @@ package account
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
+	"time"
 
 	"gopkg.in/macaron.v1"
 
-	"github.com/Unknwon/com"
 	"github.com/go-macaron/session"
 	"github.com/xtfly/goman/boot"
 	"github.com/xtfly/goman/kits"
@@ -104,7 +105,7 @@ type SignupForm struct {
 	Email     string `form:"email"`
 	Password  string `form:"password"`
 	Gender    int8   `form:"gender"`
-	JobId     string `form:"job_id"`
+	JobId     int64  `form:"job_id"`
 	Province  string `form:"province"`
 	City      string `form:"city"`
 	Signature string `form:"signature"`
@@ -171,7 +172,7 @@ func (s *AccountService) Signup(f SignupForm, clientip string) (*models.Users, s
 	u.Email = f.Email
 	u.Password = f.Password
 	u.Gender = f.Gender
-	u.JobId = com.StrTo(f.JobId).MustInt64()
+	u.JobId = f.JobId
 	u.Province = f.Province
 	u.City = f.City
 	u.Signature = f.Signature
@@ -229,3 +230,40 @@ func (s *AccountService) CheckSignin(m *models.Users) (string, bool) {
 }
 
 //----------------------------------------------------------
+type UserSettingForm struct {
+	UserName    string `form:"user_name"`
+	Gender      int8   `form:"gender"`
+	JobId       int64  `form:"job_id"`
+	Province    string `form:"province"`
+	City        string `form:"city"`
+	Signature   string `form:"signature"`
+	UrlToken    string `form:"url_token"`
+	Email       string `form:"email"`
+	CommonEmail string `form:"common_email"`
+	Birthday    string `form:"birthday"`
+	Mobile      string `form:"mobile"`
+}
+
+func (s *AccountService) CheckUrlToken(m *models.Users, urltoken string) (string, bool) {
+	if time.Now().Sub(m.UrlTokenUpdated).Seconds() <= float64(3600*24*30) {
+		return "你距离上次修改个性网址未满 30 天", false
+	}
+
+	if !regexp.MustCompile(`^(?!__)[a-zA-Z0-9_]+$`).MatchString(urltoken) {
+		return "个性网址只允许输入英文或数字", false
+	}
+
+	if !regexp.MustCompile(`^(?!__)[a-zA-Z0-9_]+$`).MatchString(urltoken) {
+		return "个性网址只允许输入英文或数字", false
+	}
+
+	if !regexp.MustCompile(`^[\d]+$`).MatchString(urltoken) {
+		return "个性网址不允许为纯数字", false
+	}
+
+	if m.UrlToken != urltoken && models.NewTr().Existed("Users", "UrlToken", urltoken) {
+		return "个性网址已经被占用请更换一个", false
+	}
+
+	return "", true
+}

@@ -1,6 +1,8 @@
 package account
 
 import (
+	"strings"
+
 	"github.com/go-macaron/captcha"
 	"github.com/xtfly/goman/boot"
 	"github.com/xtfly/goman/comps/core"
@@ -109,3 +111,52 @@ func GetSigninCtrl(c *macaron.Context) {
 }
 
 //----------------------------------------------------------
+// /a/welcomemsg/
+func GetWelcomeMsgCtrl(c *macaron.Context) {
+	r := core.NewRender(c)
+	if _, ok := r.IsSignin(); !ok {
+		r.Status(404)
+		return
+	}
+
+	r.Data["jobs"] = models.AllJobs()
+	r.RHTML(200, "account/ajax/welcome_message")
+}
+
+//----------------------------------------------------------
+// /a/welcometopics/
+func GetWelcomeTopicsCtrl(c *macaron.Context) {
+	r := core.NewRender(c)
+	if _, ok := r.IsSignin(); !ok {
+		r.Status(404)
+		return
+	}
+
+	r.Data["topics"], _ = models.GetTopicExts(8, r.Uid)
+	r.RHTML(200, "account/ajax/welcome_get_topics")
+}
+
+//----------------------------------------------------------
+// /a/welcomeusers/
+func GetWelcomeUsersCtrl(c *macaron.Context) {
+	r := core.NewRender(c)
+	if _, ok := r.IsSignin(); !ok {
+		r.Status(404)
+		return
+	}
+
+	users := ([]*models.Users)(nil)
+	if ru := boot.SysSetting.Ra.WelcomeRecmdusers; ru != "" {
+		rusers := strings.Split(ru, ",")
+		users, _ = models.GetRecommendRandUser(6, r.Uid, rusers)
+	} else {
+		users, _ = models.GetActivityUsers(6, r.Uid)
+	}
+
+	for _, u := range users {
+		u.ExtAttrs = map[string]interface{}{"FollowCheck": models.UFollowExistedById(r.Uid, u.Id)}
+	}
+
+	r.Data["users"] = users
+	r.RHTML(200, "account/ajax/welcome_get_users")
+}

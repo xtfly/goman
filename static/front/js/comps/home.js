@@ -92,6 +92,14 @@ $(function() {
 
   // 问题添加评论
   GOM.Init.init_comment_box('.aw-add-comment');
+
+  if (window.location.href.indexOf('firstlogin') > 0) {
+    $.get('/a/welcomemsg/', function(template) {
+      $('#aw-ajax-box').html(template);
+      $('body').addClass('modal-open');
+      welcome_step('1');
+    });
+  }
 });
 
 function _welcome_step_1_form_processer(result) {
@@ -101,7 +109,7 @@ function _welcome_step_1_form_processer(result) {
 function welcome_step(step) {
   switch (step) {
     case '1':
-      var fileupload = new FileUpload('avatar', $('#welcome_avatar_uploader'), $("#aw-upload-img"), '/api/account/avatar_upload/', {
+      var fileupload = new FileUpload('avatar', $('#welcome_avatar_uploader'), $("#aw-upload-img"), '/api/account/avatar/upload/', {
         'loading_status': '#aw-img-uploading'
       });
       break;
@@ -109,7 +117,7 @@ function welcome_step(step) {
     case '2':
       $('#welcome_topics_list').html('<p style="padding: 15px 0" align="center"><img src="' + G_STATIC_URL + '/common/loading_b.gif" alt="" /></p>');
       $('.aw-first-login').hide().siblings().eq(1).show();
-      $.get('/api/account/welcome_get_topics/', function(result) {
+      $.get('/a/welcometopics/', function(result) {
         $('#welcome_topics_list').html(result);
       });
       break;
@@ -117,7 +125,7 @@ function welcome_step(step) {
     case '3':
       $('#welcome_users_list').html('<p style="padding: 15px 0" align="center"><img src="' + G_STATIC_URL + '/common/loading_b.gif" alt="" /></p>');
       $('.aw-first-login').hide().siblings().eq(2).show();
-      $.get('/api/account/welcome_get_users/', function(result) {
+      $.get('/a/welcomeusers/', function(result) {
         $('#welcome_users_list').html(result);
       });
       break;
@@ -126,7 +134,7 @@ function welcome_step(step) {
       $('#aw-ajax-box').html('');
       $('.modal-backdrop').detach();
       $('body').removeClass('modal-open');
-      $.get('/api/account/ajax/clean_first_login/', function(result) {});
+      $.get('/api/account/firstlogin/clear/', function(result) {});
       break;
   }
 }

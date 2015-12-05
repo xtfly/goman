@@ -74,6 +74,8 @@ type Users struct {
 	UrlTokenUpdated time.Time `json:"url_token_update" orm:"type(datetime);null"` //个性网址更新
 
 	//RecentTopics string `json:"recent_topics" orm:"size(1024)"`
+
+	ExtAttrs map[string]interface{} `json:"-" orm:"-"`
 }
 
 var users = new(Users)
@@ -82,6 +84,7 @@ func init() {
 	orm.RegisterModel(users)
 }
 
+//----------------------------------------------------------
 //检查用户名,电子邮件地址是否已经存在
 func UserExistedByName(name string) bool {
 	return NewTr().Query("Users").Filter("UserName", name).Exist()
@@ -95,6 +98,8 @@ func UserExistedById(id int64) bool {
 	return NewTr().Query("Users").Filter("Id", id).Exist()
 }
 
+//----------------------------------------------------------
+// 增加一条记录
 func (m *Users) Add(t *Transaction) (int64, bool) {
 	m.LastIp = m.RegIp
 
@@ -130,13 +135,7 @@ func (m *Users) Add(t *Transaction) (int64, bool) {
 	}
 
 	// 初始化积分
-	il := &IntegralLog{
-		Uid:      id,
-		Action:   IntegralRegister,
-		Integral: syscfg.Ir.DefautlIntegral,
-		Note:     "初始资本",
-	}
-	if !il.Add(t) {
+	if !AddIntegralLog(t, id, IntegralRegister, syscfg.Ir.DefautlIntegral, "初始资本") {
 		return id, false
 	}
 
@@ -153,6 +152,8 @@ func (m *Users) Add(t *Transaction) (int64, bool) {
 	return id, ok
 }
 
+//----------------------------------------------------------
+// 检查用户，邮件与密码是否正确
 func (m *Users) CheckSignin(input string, password string) bool {
 	if input == "" || password == "" {
 		return false
@@ -175,4 +176,27 @@ func (m *Users) CheckSignin(input string, password string) bool {
 		return false
 	}
 	return true
+}
+
+//----------------------------------------------------------
+// 获取活跃用户 (非垃圾用户)
+// 好友 & 粉丝 > 5, 回复 > 5, 根据登陆时间, 倒序
+func GetActivityUsers(limit int64, uid int64) ([]*Users, bool) {
+	var users []*Users
+	_, err := NewTr().Query("Users").Filter("FansCount__gt", 5).Filter("FriendCount__gt", 5).Filter("AnswerCount__gt", 1).
+		Exclude("Id", uid).Limit(limit).OrderBy("-LastLogin").All(&users)
+	return users, err != nil
+}
+
+// 获取推荐用户
+func GetRecommendRandUser(limit int64, uid int64, recommends []string) ([]*Users, bool) {
+	var users []*Users
+
+	uns := make([]interface{}, len(recommends))
+	for _, v := range recommends {
+		uns = append(uns, v)
+	}
+	_, err := NewTr().Query("Users").Filter("UserName__gt", uns).
+		Exclude("Id", uid).Limit(limit).All(&users) // TODO by rand
+	return users, err != nil
 }

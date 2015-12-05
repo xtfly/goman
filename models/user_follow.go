@@ -19,12 +19,11 @@ type UserFollow struct {
 	UserAgent string `json:"user_agent"` // 用户客户端信息
 }
 
-var ufollow = new(UserFollow)
-
 func init() {
-	orm.RegisterModel(ufollow)
+	orm.RegisterModel(new(UserFollow))
 }
 
+//----------------------------------------------------------
 func AddUserFollow(t *Transaction, fans, friend int64) bool {
 	if fans == friend {
 		return true
@@ -78,3 +77,5 @@ func updateUFollowRelation(t *Transaction, uid int64) bool {
 	return t.UpdateById("Users", uid,
 		orm.Params{"FansCount": fansc, "FriendCount": friendc})
 }
+
+//----------------------------------------------------------

@@ -1,0 +1,15 @@
+{% for v in users %}
+<li>
+	<a class="img"><img src="{{ v.AvatarUrl("mid") }}" alt="" /></a>
+	<a class="btn btn-success follow btn-mini pull-right{% if v.ExtAttrs.FollowCheck %} active{% endif %}" href="javascript:;" onclick="GOM.User.follow($(this), 'user', {{v.Id}});"><span>{% if v.ExtAttrs.FollowCheck %}取消{% endif %}关注 <em>|</em> <b>{{v.FansCount}}</b></span></a>
+	<p>
+		<a class="aw-user-name" href="/u/{{v.UrlToken}}/">{{v.UserName}} {% if v.Verified %}<i class="icon-v {% if v.Verified == "enterprise" %}i-ve{% endif %}" title="{% if v.Verified == "enterprise" %}企业认证{% else %}个人认证{% endif %}"></i>{% endif %}></a>
+	</p>
+	<p>
+		<span><i class="aw-icon i-user-prestige"></i>威望: <em class="aw-text-color-green">{{v.Reputation}} </em></span>
+	</p>
+	<p class="signature aw-hide-txt">
+		{{v.Signature}}
+	</p>
+</li>
+{% endfor %}

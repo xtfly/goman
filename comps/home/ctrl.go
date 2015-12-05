@@ -17,6 +17,6 @@ func GetFirstLoginCtrl(c *macaron.Context) {
 	r := core.NewRender(c)
 	c.Data["app"] = "explore"
 
-	r.AddJs("comps/home.js")
+	r.AddJs("comps/home.js").AddJs("fileupload.js")
 	r.RHTML(200, "home/index")
 }

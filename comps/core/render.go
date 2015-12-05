@@ -27,6 +27,35 @@ type UserInfo struct {
 	Group *models.UsersGroup
 }
 
+func (u *UserInfo) GetAvatar(size string) string {
+	avatar := boot.SysSetting.Si.Static + "/common/"
+	if u.Avatar == "" {
+		switch size {
+		case "max":
+			avatar = avatar + "avatar-max-img.png"
+		case "min":
+			avatar = avatar + "avatar-min-img.png"
+		case "mid":
+			avatar = avatar + "avatar-min-img.png"
+		default:
+			avatar = avatar + "avatar-img.png"
+		}
+	} else {
+		avatar = u.Avatar
+		switch size {
+		case "max":
+			break
+		case "min":
+			avatar = strings.Replace(avatar, "max", "min", -1)
+		case "mid":
+			avatar = strings.Replace(avatar, "max", "mid", -1)
+		default:
+			break
+		}
+	}
+	return avatar
+}
+
 func NewRender(c *macaron.Context) *Render {
 	r := &Render{
 		Context: c,
@@ -122,6 +151,13 @@ func (c *Render) SetCrumb(name string, url string) {
 	c.Data["page_title"] = html.EscapeString(strings.TrimRight(title, "/"))
 }
 
+func (c *Render) IsSignin() (string, bool) {
+	if c.Uid == 0 || c.UserInfo == nil {
+		return "未登录，非法访问", false
+	}
+	return "", true
+}
+
 func (c *Render) init() *Render {
 	c.Session = c.sessionStore()
 
@@ -151,7 +187,7 @@ func (c *Render) loadUser() {
 		c.UserInfo.Id = c.Uid
 		t := models.NewTr()
 		// load the user info from db
-		if !t.Read(c.UserInfo) {
+		if !t.Read(&c.UserInfo.Users) {
 			return
 		}
 

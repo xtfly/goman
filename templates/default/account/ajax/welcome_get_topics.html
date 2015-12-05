@@ -1,0 +1,14 @@
+{% for v in topics %}
+<li>
+	<a class="img" ><img src="{{v.Picture}}" alt="" /></a>
+	<a href="javascript:;" class="btn btn-success follow btn-mini pull-right {% if v.ExtAttrs.HasFocus %}active{% endif %}" onclick="GOM.User.follow($(this), 'topic', {{v.Id}});"><span>{% if v.ExtAttrs.HasFocus %} 取消关注 {% else %}关注{% endif %}</span>
+			 <em>|</em> <b>{{v.FocusCount}}</b>
+		</a>
+	<p class="clearfix">
+		<span class="topic-tag"><a class="text">{{v.Title}}</a></span>
+	</p>
+	<p>
+		<span class="text-color-999">{{v.DisussCount}} 个讨论</span>
+	</p>
+</li>
+{% endfor %}

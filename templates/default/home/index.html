@@ -49,17 +49,4 @@
 	</div>
 </div>
 
-{% if u and u.FirstLogin %}
-<script type="text/javascript" src="{{sys.Si.Static}}/front/js/fileupload.js"></script>
-<script type="text/javascript">
-$(document).ready(function () {
-	$.get('/api/account/welcomemessage/', function (template) {
-		$('#aw-ajax-box').html(template);
-		$('body').addClass('modal-open');
-		welcome_step('1');
-	});
-});
-</script>
-{% endif %}
-
 {% include "../global/footer.html" %}

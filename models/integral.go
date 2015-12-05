@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	IntegralRegister int8 = iota
+	IntegralRegister int8 = iota // 注册
 	IntegralNewQuestion
 	IntegralAnswerQuestion
 	IntegralQuestionAnswer
@@ -20,18 +20,20 @@ const (
 	IntegralAnswerFold
 	IntegralBestAnswer
 	IntegralInvite
+	IntegralUpdateUserSignature // 更新签名
+	IntegralUploadUserAvatar    // 上传用户Avater
 )
 
 // 积分记录表
 type IntegralLog struct {
-	Id         int64     `json:"id" orm:"pk;auto"`                                    //ID
-	Uid        int64     `json:"uid" orm:"default(0);index"`                          //用户ID
+	Id         int64     `json:"id" orm:"pk;auto"`                                    // ID
+	Uid        int64     `json:"uid" orm:"default(0);index"`                          // 用户ID
 	Action     int8      `json:"action" orm:"default(0);index"`                       //
 	Integral   int64     `json:"integral" orm:"default(0);index"`                     //
 	Note       string    `json:"note" orm:"size(128);null"`                           //
 	Balance    int64     `json:"balance" orm:"default(0)"`                            //
 	ItemId     int64     `json:"item_id" orm:"default(0);index"`                      //
-	ActiveTime time.Time `json:"active_time" orm:"auto_now_add;type(datetime);index"` //时间
+	ActiveTime time.Time `json:"active_time" orm:"auto_now_add;type(datetime);index"` // 时间
 
 }
 
@@ -68,4 +70,22 @@ func sumUserIntegral(t *Transaction, uid int64) bool {
 		return false
 	}
 	return t.UpdateById("Users", uid, orm.Params{"Integral": integral})
+}
+
+func AddIntegralLog(t *Transaction, uid int64, action int8, integral int64, note string) bool {
+	il := &IntegralLog{
+		Uid:      uid,
+		Action:   action,
+		Integral: integral,
+		Note:     note,
+	}
+
+	if !il.Add(t) {
+		return false
+	}
+	return true
+}
+
+func IntegralLogExistByUidAction(uid int64, action int8) bool {
+	return NewTr().ExistedV2("IntegralLog", orm.Params{"Uid": uid, "Action": action})
 }

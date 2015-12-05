@@ -29,6 +29,7 @@ type Topic struct {
 	SeoTitle string `json:"seo_title" orm:"size(255);null"` //
 	MergedId int64  `json:"merged_id" orm:"default(0)"`     //
 
+	ExtAttrs map[string]interface{} `json:"-" orm:"-"`
 }
 
 //话题关注表
@@ -63,4 +64,26 @@ type TopicRelation struct {
 
 func init() {
 	orm.RegisterModel(new(Topic), new(TopicFocus), new(TopicMerge), new(TopicRelation))
+}
+
+//----------------------------------------------------------
+// 随机选出几个Topic
+func GetTopicExts(limit int64, uid int64) ([]*Topic, bool) {
+	var topics []*Topic
+	t := NewTr()
+	_, err := t.Query("Topic").Limit(limit).All(&topics) // TODO by rand
+	if err != nil {
+		return topics, false
+	}
+
+	for _, v := range topics {
+		v.ExtAttrs = map[string]interface{}{"HasFocus": t.ExistedV2("TopicFocus", orm.Params{"Uid": uid, "Tid": v.Id})}
+	}
+	return topics, true
+}
+
+//----------------------------------------------------------
+func AddTopic(t *Transaction, name string) bool {
+	_, ok := t.Insert(&Topic{Title: name, Desc: name})
+	return ok
 }

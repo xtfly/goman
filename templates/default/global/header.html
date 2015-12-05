@@ -25,7 +25,7 @@
               </p>
             </div>
             <div class="mod-footer">
-              <a class="pull-right btn btn-mini btn-success publish" href="{% if sys.Cs.QuickPublish and uid %}javascript:;{% else %}publish{% endif %}" onClick="$('#header_publish').click();">发起问题</a>
+              <a class="pull-right btn btn-mini btn-success publish" href="{% if sys.Cs.QuickPublish and u %}javascript:;{% else %}publish{% endif %}" onClick="$('#header_publish').click();">发起问题</a>
             </div>
           </div>
         </form>
@@ -42,9 +42,9 @@
         </div>
         <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
           <ul class="nav navbar-nav">
-            {% if uid %}
+            {% if u %}
             <li>
-              <a href="home/" class="{% if app == "home" %}active{% endif %}">
+              <a href="/h/" class="{% if app == "home" %}active{% endif %}">
                 <i class="icon icon-home"></i>
                 动态</a>
             </li>
@@ -54,10 +54,10 @@
                 <i class="icon icon-list"></i>发现</a>
             </li>
             <li>
-              <a  href="t/" class="{% if app == "topic" %}active{% endif %}">
+              <a  href="/t/" class="{% if app == "topic" %}active{% endif %}">
                 <i class="icon icon-topic"></i>话题</a>
             </li>
-            {% if uid %}
+            {% if u %}
             <li>
               <a href="n/" class="{% if app == "notifications" %} active {% endif %}">
                 <i class="icon icon-bell"></i>通知</a>
@@ -74,7 +74,7 @@
             {% endif %}
             {% if sys.Cs.EnableHelp %}
             <li>
-              <a href="help/" class="{% if app == "help" %} active {% endif %}">
+              <a href="/help/" class="{% if app == "help" %} active {% endif %}">
                 <i class="icon icon-bulb"></i>帮助</a>
             </li>
             {% endif %}
@@ -91,42 +91,41 @@
       <!-- 用户栏 -->
       <div class="aw-user-nav">
         <!-- 登陆&注册栏 -->
-        {% if uid %}
-        <a class="aw-user-nav-dropdown" href="people/{{u.UrlToken}}">
-          <img alt="{{u.UserName}}" src=""/>
+        {% if u %}
+        <a class="aw-user-nav-dropdown" href="/u/{{u.UrlToken}}">
+          <img alt="{{u.UserName}}" src="{{u.GetAvatar("mid")}}"/>
           {% if u.InboxUnread %}
           <span class="badge badge-important">{{u.InboxUnread}}</span>
           {% endif %}
-
         </a>
         <div class="aw-dropdown dropdown-list pull-right">
           <ul class="aw-dropdown-list">
             <li>
-              <a href="inbox/">
+              <a href="/inbox/">
                 <i class="icon icon-inbox"></i>私信
                 <span class="badge badge-important hide" id="inbox_unread">0</span>
               </a>
             </li>
             <li class="hidden-xs">
-              <a href="account/setting/profile/">
+              <a href="/a/setting/profile/">
                 <i class="icon icon-setting"></i>设置</a>
             </li>
             {% if u.Permission.IsAdministortar or u.permission.IsModerator %}
             <li class="hidden-xs">
-              <a href="admin/">
+              <a href="/admin/">
                 <i class="icon icon-job"></i>管理</a>
             </li>
             {% endif %}
             <li>
-              <a href="a/signout/">
+              <a href="/a/signout/">
                 <i class="icon icon-logout"></i>退出</a>
             </li>
           </ul>
         </div>
         {% else %}
-        <a class="login btn btn-normal btn-primary" href="a/signin/">登录</a>
+        <a class="login btn btn-normal btn-primary" href="/a/signin/">登录</a>
         {% if sys.Ra.RegisterType == 0 %}
-        <a class="register btn btn-normal btn-success" href="a/signup/">注册</a>
+        <a class="register btn btn-normal btn-success" href="/a/signup/">注册</a>
         {% endif %}
         {% endif %}
         <!-- end 登陆&注册栏 -->
@@ -163,7 +162,7 @@
       <!-- end 发起 -->
     </div>
   </div>
-  {% if uid and u.Email and !u.ValidEmail and sys.Ra.RegisterValidType != 0 %}
+  {% if u and u.Email and !u.ValidEmail and sys.Ra.RegisterValidType != 0 %}
   <div class="aw-email-verify">
     <div class="container text-center">
       你的邮箱 %s 还未验证,

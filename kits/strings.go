@@ -64,3 +64,10 @@ func SensitiveWordExistsV2(strs []string, sw string) bool {
 
 	return false
 }
+
+func IfEmpty(a, b string) string {
+	if a == "" {
+		return b
+	}
+	return a
+}

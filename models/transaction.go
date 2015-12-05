@@ -74,18 +74,40 @@ func (t *Transaction) Delete(m interface{}) bool {
 	}
 }
 
+//----------------------------------------------------------
 func (t *Transaction) Query(table string) orm.QuerySeter {
 	return t.o.QueryTable(table)
 }
 
-// 判断行数是否存在
+//----------------------------------------------------------
+// 判断行是否存在
 func (t *Transaction) Existed(table string, field string, value interface{}) bool {
 	return t.Query(table).Filter(field, value).Exist()
+}
+
+func (t *Transaction) ExistedV2(table string, params orm.Params) bool {
+	return t.filters(table, params).Exist()
+}
+
+func (t *Transaction) filters(table string, params orm.Params) orm.QuerySeter {
+	qs := t.Query(table)
+	for k, v := range params {
+		qs.Filter(k, v)
+	}
+	return qs
 }
 
 // 根据某个字查询统计行数
 func (t *Transaction) Count(table string, field string, value interface{}) (int64, bool) {
 	if c, err := t.Query(table).Filter(field, value).Count(); err != nil {
+		return c, false
+	} else {
+		return c, true
+	}
+}
+
+func (t *Transaction) CountV2(table string, params orm.Params) (int64, bool) {
+	if c, err := t.filters(table, params).Count(); err != nil {
 		return c, false
 	} else {
 		return c, true
@@ -103,6 +125,7 @@ func (t *Transaction) Sum(table string, field string, where string, value interf
 	return sum, true
 }
 
+//----------------------------------------------------------
 // 根据Id来查询并更新数据
 func (t *Transaction) UpdateById(table string, id int64, params orm.Params) bool {
 	return t.UpdateByField(table, "Id", id, params)
@@ -115,3 +138,12 @@ func (t *Transaction) UpdateByField(table string, field string, value interface{
 	}
 	return true
 }
+
+func (t *Transaction) UpdateByFieldV2(table string, fileds orm.Params, params orm.Params) bool {
+	if _, err := t.filters(table, fileds).Update(params); err != nil {
+		return false
+	}
+	return true
+}
+
+//----------------------------------------------------------

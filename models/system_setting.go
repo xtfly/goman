@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/xtfly/goman/kits/m2s"
+	"github.com/xtfly/gokits"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -241,7 +241,7 @@ func (gss *GlobalSetting) LoadAll() bool {
 	v := reflect.ValueOf(gss).Elem()
 	for i := 0; i < v.NumField(); i++ {
 		fv := v.Field(i)
-		if err := m2s.Map2Struct(kvs, fv.Interface()); err != nil {
+		if err := gokits.Map2Struct(kvs, fv.Interface()); err != nil {
 			log.Errorf("Assign value to  failed. error = %s", err.Error())
 			return false
 		}
@@ -262,31 +262,31 @@ func (gss *GlobalSetting) LoadAll() bool {
 
 // Update site info to db
 func (gss *GlobalSetting) UpdateSiteInfo() bool {
-	return gss.update(m2s.Struct2Map(gss.Si))
+	return gss.update(gokits.Struct2Map(gss.Si))
 }
 
 func (gss *GlobalSetting) UpdateRegisterAccess() bool {
-	return gss.update(m2s.Struct2Map(gss.Ra))
+	return gss.update(gokits.Struct2Map(gss.Ra))
 }
 
 func (gss *GlobalSetting) UpdateSiteCapibility() bool {
-	return gss.update(m2s.Struct2Map(gss.Sc))
+	return gss.update(gokits.Struct2Map(gss.Sc))
 }
 
 func (gss *GlobalSetting) UpdateUserAuthority() bool {
-	return gss.update(m2s.Struct2Map(gss.Ua))
+	return gss.update(gokits.Struct2Map(gss.Ua))
 }
 
 func (gss *GlobalSetting) UpdateIntegralReputation() bool {
-	return gss.update(m2s.Struct2Map(gss.Ir))
+	return gss.update(gokits.Struct2Map(gss.Ir))
 }
 
 func (gss *GlobalSetting) UpdateContextSetting() bool {
-	return gss.update(m2s.Struct2Map(gss.Cs))
+	return gss.update(gokits.Struct2Map(gss.Cs))
 }
 
 func (gss *GlobalSetting) UpdatePageSetting() bool {
-	return gss.update(m2s.Struct2Map(gss.Ps))
+	return gss.update(gokits.Struct2Map(gss.Ps))
 }
 
 func (gss *GlobalSetting) update(kvs map[string]interface{}) bool {

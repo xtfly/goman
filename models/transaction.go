@@ -145,5 +145,3 @@ func (t *Transaction) UpdateByFieldV2(table string, fileds orm.Params, params or
 	}
 	return true
 }
-
-//----------------------------------------------------------

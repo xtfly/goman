@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/xtfly/gokits"
 )
 
 //话题表
@@ -31,6 +32,8 @@ type Topic struct {
 
 	ExtAttrs map[string]interface{} `json:"-" orm:"-"`
 }
+
+type Topics []*Topic
 
 //话题关注表
 type TopicFocus struct {
@@ -87,3 +90,74 @@ func AddTopic(t *Transaction, name string) bool {
 	_, ok := t.Insert(&Topic{Title: name, Desc: name})
 	return ok
 }
+
+//----------------------------------------------------------
+func GetFoucsTopicIdsByUid(uid int64) ([]int64, bool) {
+	var tfs []*TopicFocus
+	if _, err := NewTr().Query("Topicfocus").Filter("Uid", uid).All(&tfs); err != nil {
+		return nil, false
+	}
+
+	ids := make([]int64, len(tfs))
+	for _, v := range tfs {
+		ids = append(ids, v.Tid)
+	}
+
+	return ids, true
+}
+
+//----------------------------------------------------------
+func GetItemIdsByTopicIds(tids []int64, stype string, limit int) ([]int64, bool) {
+	var trs []*TopicRelation
+	if _, err := NewTr().Query("TopicRelation").Filter("Tid__in", gokits.SliceInt64To(tids)).
+		Filter("Type", stype).Limit(limit).All(&trs); err != nil {
+		return nil, false
+	}
+
+	ids := make([]int64, len(trs))
+	for _, v := range trs {
+		ids = append(ids, v.ItemId)
+	}
+
+	return ids, true
+}
+
+//----------------------------------------------------------
+func GetTopicsByItemIds(iids []int64) (map[int64]Topics, bool) {
+	t := NewTr()
+	var trs []*TopicRelation
+	if _, err := t.Query("TopicRelation").Filter("ItemId__in", gokits.SliceInt64To(iids)).All(&trs); err != nil {
+		return nil, false
+	}
+
+	tids := make([]int64, len(trs))
+	for _, v := range trs {
+		tids = append(tids, v.Tid)
+	}
+
+	var ts []*Topic
+	if _, err := t.Query("Topic").Filter("Id__in", gokits.SliceInt64To(tids)).All(&ts); err != nil {
+		return nil, false
+	}
+
+	tsmap := make(map[int64]*Topic)
+	for _, v := range ts {
+		tsmap[v.Id] = v
+	}
+
+	item2tsmap := make(map[int64]Topics)
+	for _, v := range trs {
+		vts, existed := item2tsmap[v.ItemId]
+		if !existed {
+			vts = make(Topics, 0)
+		}
+		if t, e := tsmap[v.Tid]; e {
+			vts = append(vts, t)
+		}
+		item2tsmap[v.ItemId] = vts
+	}
+
+	return item2tsmap, true
+}
+
+//----------------------------------------------------------

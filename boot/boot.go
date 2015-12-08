@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/xtfly/goman/kits"
+	"github.com/xtfly/gokits"
 	"github.com/xtfly/goman/models"
 	"gopkg.in/ini.v1"
 	"gopkg.in/macaron.v1"
@@ -31,7 +31,7 @@ var (
 	SysSetting *models.GlobalSetting
 
 	// a global AES crypte object
-	crypto *kits.Crypto
+	crypto *gokits.Crypto
 )
 
 // initialize by the secure config
@@ -74,7 +74,7 @@ func readSecureCfg() {
 	factor := secure.Key("factor").String()
 	crc := secure.Key("crc").String()
 
-	crypto, err = kits.NewCrypto(factor, crc)
+	crypto, err = gokits.NewCrypto(factor, crc)
 	if err != nil {
 		panic(err)
 	}
@@ -90,7 +90,7 @@ func getCfgFile() string {
 	configPath := filepath.Join(AppPath, "conf", "app.ini")
 
 	if workPath != AppPath {
-		if kits.FileExists(configPath) {
+		if gokits.FileExists(configPath) {
 			os.Chdir(AppPath)
 		} else if strings.HasSuffix(workPath, "goman") {
 			configPath = filepath.Join(workPath, "conf", "app.ini")
@@ -104,6 +104,6 @@ func getCfgFile() string {
 }
 
 // retrive the Crypto using defalt config
-func GetCrypto() *kits.Crypto {
+func GetCrypto() *gokits.Crypto {
 	return crypto
 }

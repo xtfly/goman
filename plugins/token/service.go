@@ -7,8 +7,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/go-macaron/session"
+	"github.com/xtfly/gokits"
 	"github.com/xtfly/goman/boot"
-	"github.com/xtfly/goman/kits"
 
 	"gopkg.in/macaron.v1"
 )
@@ -31,7 +31,7 @@ type TokenService interface {
 }
 
 type tokenService struct {
-	crypto *kits.Crypto
+	crypto *gokits.Crypto
 }
 
 func (cas *tokenService) GenUserToken(clientip string, uid int64, expire int32, flag TokenFlag) (string, error) {

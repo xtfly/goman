@@ -151,10 +151,15 @@ func (c *Render) SetCrumb(name string, url string) {
 	c.Data["page_title"] = html.EscapeString(strings.TrimRight(title, "/"))
 }
 
-func (c *Render) IsSignin() (string, bool) {
+func (c *Render) CheckUser() (string, bool) {
 	if c.Uid == 0 || c.UserInfo == nil {
 		return "未登录，非法访问", false
 	}
+
+	if c.UserInfo.Forbidden {
+		return "账号已被禁用", false
+	}
+
 	return "", true
 }
 

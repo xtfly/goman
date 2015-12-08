@@ -114,8 +114,8 @@ func GetSigninCtrl(c *macaron.Context) {
 // /a/welcomemsg/
 func GetWelcomeMsgCtrl(c *macaron.Context) {
 	r := core.NewRender(c)
-	if _, ok := r.IsSignin(); !ok {
-		r.Status(404)
+	if _, ok := r.CheckUser(); !ok {
+		r.Status(401)
 		return
 	}
 
@@ -127,8 +127,8 @@ func GetWelcomeMsgCtrl(c *macaron.Context) {
 // /a/welcometopics/
 func GetWelcomeTopicsCtrl(c *macaron.Context) {
 	r := core.NewRender(c)
-	if _, ok := r.IsSignin(); !ok {
-		r.Status(404)
+	if _, ok := r.CheckUser(); !ok {
+		r.Status(401)
 		return
 	}
 
@@ -140,8 +140,8 @@ func GetWelcomeTopicsCtrl(c *macaron.Context) {
 // /a/welcomeusers/
 func GetWelcomeUsersCtrl(c *macaron.Context) {
 	r := core.NewRender(c)
-	if _, ok := r.IsSignin(); !ok {
-		r.Status(404)
+	if _, ok := r.CheckUser(); !ok {
+		r.Status(401)
 		return
 	}
 

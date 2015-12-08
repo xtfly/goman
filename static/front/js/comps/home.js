@@ -133,8 +133,8 @@ function welcome_step(step) {
     case 'finish':
       $('#aw-ajax-box').html('');
       $('.modal-backdrop').detach();
-      $('body').removeClass('modal-open');
-      $.get('/api/account/firstlogin/clear/', function(result) {});
+      $('body').removeClass('modal-open');``
+      $.get('/api/account/firstlogin/clean/', function(result) {});
       break;
   }
 }
@@ -145,7 +145,7 @@ function reload_list() {
 }
 
 function check_actions_new(time) {
-  $.get('/api/home/check_actions_new/time-' + time, function(result) {
+  $.get('/api/home/actions/checknew?time=' + time, function(result) {
     if (result.errno == 1) {
       if (result.rsm.new_count > 0) {
         if ($('#new_actions_tip').is(':hidden')) {

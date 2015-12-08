@@ -9,8 +9,8 @@ import (
 	"gopkg.in/macaron.v1"
 
 	"github.com/go-macaron/session"
+	"github.com/xtfly/gokits"
 	"github.com/xtfly/goman/boot"
-	"github.com/xtfly/goman/kits"
 	"github.com/xtfly/goman/models"
 	"github.com/xtfly/goman/plugins/token"
 )
@@ -41,7 +41,7 @@ func NewService() *AccountService {
 //----------------------------------------------------------
 //检查用户名中是否包含敏感词或用户信息保留字
 func (s *AccountService) CheckUsernameSensitiveWords(un string) bool {
-	if kits.SensitiveWordExists(un, boot.SysSetting.Cs.SensitiveWords) {
+	if SensitiveWordExists(un, boot.SysSetting.Cs.SensitiveWords) {
 		return true
 	}
 
@@ -62,7 +62,7 @@ func (s *AccountService) CheckUsernameSensitiveWords(un string) bool {
 
 // 检查用户名是否合法
 func (s *AccountService) CheckUsernameChar(un string) (string, bool) {
-	if kits.IsDigit(un) {
+	if gokits.IsDigit(un) {
 		return "用户名不能为纯数字", false
 	}
 
@@ -81,15 +81,15 @@ func (s *AccountService) CheckUsernameChar(un string) (string, bool) {
 	case models.UserRuleNotLimit:
 		break
 	case models.UserRuleChineseLetterNumUnline:
-		if !kits.IsChineseLetterNumUnline(un) {
+		if !gokits.IsChineseLetterNumUnline(un) {
 			return fmt.Sprintf("请输入大于[%d,%d]字节的用户名, 允许汉字、字母与数字", min, max), false
 		}
 	case models.UserRuleLetterNumUnline:
-		if !kits.IsLetterNumUnline(un) {
+		if !gokits.IsLetterNumUnline(un) {
 			return fmt.Sprintf("请输入[%d,%d]个字母、数字或下划线", min, max), false
 		}
 	case models.UserRuleChinese:
-		if !kits.IsChinese(un) {
+		if !gokits.IsChinese(un) {
 			return fmt.Sprintf("请输入[%d,%d]个汉字", min/2, max/2), false
 		}
 	default:
@@ -136,7 +136,7 @@ func (s *AccountService) CheckSignup(f SignupForm) (string, bool) {
 		return "用户名已被注册或包含敏感词或系统保留字", false
 	}
 
-	if !kits.IsEmail(f.Email) || models.UserExistedByEmail(f.Email) {
+	if !gokits.IsEmail(f.Email) || models.UserExistedByEmail(f.Email) {
 		return "EMail 已经被使用, 或格式不正确", false
 	}
 

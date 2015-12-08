@@ -4,7 +4,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/xtfly/goman/kits"
+	"github.com/xtfly/gokits"
 	"gopkg.in/ini.v1"
 	"gopkg.in/macaron.v1"
 
@@ -25,7 +25,7 @@ var (
 )
 
 // initialize the db driver and config
-func InitDB(c *kits.Crypto) {
+func InitDB(c *gokits.Crypto) {
 	if dbinited {
 		return
 	}

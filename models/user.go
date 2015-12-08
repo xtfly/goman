@@ -6,7 +6,7 @@ import (
 
 	"github.com/Unknwon/com"
 	"github.com/astaxie/beego/orm"
-	"github.com/xtfly/goman/kits"
+	"github.com/xtfly/gokits"
 )
 
 const (
@@ -104,10 +104,10 @@ func (m *Users) Add(t *Transaction) (int64, bool) {
 	m.LastIp = m.RegIp
 
 	//
-	m.Password, m.Salt = kits.GenPasswd(m.Password, 8)
+	m.Password, m.Salt = gokits.GenPasswd(m.Password, 8)
 
 	// 生成用户的URL
-	m.UrlToken = kits.NewRandWithPrefix(m.Email, 8)
+	m.UrlToken = gokits.NewRandWithPrefix(m.Email, 8)
 	m.UrlTokenUpdated = time.Now()
 
 	m.InvitationAvailable = syscfg.Ra.NewerInviteNum
@@ -172,7 +172,7 @@ func (m *Users) CheckSignin(input string, password string) bool {
 		return false
 	}
 
-	if !kits.CmpPasswd(password, m.Salt, m.Password) {
+	if !gokits.CmpPasswd(password, m.Salt, m.Password) {
 		return false
 	}
 	return true
@@ -192,11 +192,7 @@ func GetActivityUsers(limit int64, uid int64) ([]*Users, bool) {
 func GetRecommendRandUser(limit int64, uid int64, recommends []string) ([]*Users, bool) {
 	var users []*Users
 
-	uns := make([]interface{}, len(recommends))
-	for _, v := range recommends {
-		uns = append(uns, v)
-	}
-	_, err := NewTr().Query("Users").Filter("UserName__gt", uns).
+	_, err := NewTr().Query("Users").Filter("UserName__in", gokits.SliceStrTo(recommends)).
 		Exclude("Id", uid).Limit(limit).All(&users) // TODO by rand
 	return users, err != nil
 }

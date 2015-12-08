@@ -99,3 +99,5 @@ func init() {
 	orm.RegisterModel(new(Question), new(QuestionThanks), new(QuestionComments),
 		new(QuestionInvite), new(QuestionFocus), new(QuestionUninterested))
 }
+
+//----------------------------------------------------------

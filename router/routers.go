@@ -25,6 +25,7 @@ func Route(m *macaron.Macaron) {
 	m.Post("/api/account/signin/", binding.Bind(account.SigninForm{}), account.ApiSignin)
 	m.Post("/api/account/setting/profile", binding.Bind(account.UserSettingForm{}), account.ApiSettingProfile)
 	m.Post("/api/account/avatar/upload/", account.ApiUploadAvatar)
+	m.Post("/api/account/firstlogin/clean/", account.ApiCleanFirstLogin)
 
 	// user home
 	m.Get("/h/firstlogin/", home.GetFirstLoginCtrl)

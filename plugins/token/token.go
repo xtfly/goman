@@ -8,7 +8,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/xtfly/goman/kits"
+	"github.com/xtfly/gokits"
 )
 
 // the type of token
@@ -32,7 +32,7 @@ const (
 	SysUserId int64 = int64(-8619820608)
 )
 
-func (ut *UserToken) GenToken(crypto *kits.Crypto) (string, error) {
+func (ut *UserToken) GenToken(crypto *gokits.Crypto) (string, error) {
 	bs := make([]byte, 0)
 	buf := bytes.NewBuffer(bs)
 
@@ -62,7 +62,7 @@ func (ut *UserToken) GenToken(crypto *kits.Crypto) (string, error) {
 	}
 }
 
-func (ut *UserToken) DecodeToken(crypto *kits.Crypto, token string) bool {
+func (ut *UserToken) DecodeToken(crypto *gokits.Crypto, token string) bool {
 	bs, err := base64.URLEncoding.DecodeString(token)
 	if err != nil {
 		return false

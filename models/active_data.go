@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/xtfly/goman/kits"
+	"github.com/xtfly/gokits"
 )
 
 //
@@ -32,7 +32,7 @@ func NewValidByEmail(t *Transaction, uid int64, email string) bool {
 	m := &ActiveData{
 		UId:            uid,
 		ExpireTime:     time.Now().Unix() + 60*60*24,
-		ActiveCode:     kits.NewRandWithPrefix(email, 8),
+		ActiveCode:     gokits.NewRandWithPrefix(email, 8),
 		AcitveTypeCode: "VALID_EMAIL",
 	}
 

@@ -4,7 +4,7 @@ INSERT INTO `system_setting` (`name`, `value`) VALUES
 ('description', 'GoMan社区 社交化知识社区'),
 ('keywords', 'GoMan,知识社区,社交社区,问答社区'),
 ('upload_url', ''),
-('upload_dir', ''),
+('upload_dir', 'static/upload'),
 ('icp_beian', ''),
 ('sensitive_words', ''),
 ('def_focus_uids', '1'),

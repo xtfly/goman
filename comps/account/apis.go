@@ -15,10 +15,11 @@ import (
 
 	"github.com/go-macaron/captcha"
 	"github.com/go-macaron/session"
+	"github.com/xtfly/gokits"
 	"github.com/xtfly/goman/boot"
 	"github.com/xtfly/goman/comps"
 	"github.com/xtfly/goman/comps/core"
-	"github.com/xtfly/goman/kits"
+
 	"github.com/xtfly/goman/models"
 	"github.com/xtfly/goman/plugins/token"
 	"gopkg.in/macaron.v1"
@@ -133,13 +134,13 @@ func ApiSignin(c *macaron.Context, f SigninForm, a token.TokenService, ss sessio
 // POST /api/account/setting/profile
 func ApiSettingProfile(c *macaron.Context, f UserSettingForm, ss session.Store) {
 	r := core.NewRender(c)
-	s := NewService()
 
-	if msg, ok := r.IsSignin(); !ok {
+	if msg, ok := r.CheckUser(); !ok {
 		c.JSON(200, comps.NewRestErrResp(-1, msg))
 		return
 	}
 
+	s := NewService()
 	u := r.UserInfo
 	nu := &models.Users{Id: u.Id}
 	t := models.NewTr().Begin()
@@ -171,7 +172,7 @@ func ApiSettingProfile(c *macaron.Context, f UserSettingForm, ss session.Store) 
 
 	nu.Email = u.Email
 	if f.Email != "" {
-		if !kits.IsEmail(f.Email) {
+		if !gokits.IsEmail(f.Email) {
 			c.JSON(200, comps.NewRestErrResp(-1, "请输入正确的 E-Mail 地址"))
 			return
 		}
@@ -185,7 +186,7 @@ func ApiSettingProfile(c *macaron.Context, f UserSettingForm, ss session.Store) 
 
 	nu.CommonEmail = u.CommonEmail
 	if f.CommonEmail != "" {
-		if !kits.IsEmail(f.CommonEmail) {
+		if !gokits.IsEmail(f.CommonEmail) {
 			c.JSON(200, comps.NewRestErrResp(-1, "请输入正确的常用邮箱地址"))
 			return
 		}
@@ -193,8 +194,8 @@ func ApiSettingProfile(c *macaron.Context, f UserSettingForm, ss session.Store) 
 	}
 
 	nu.Gender = f.Gender
-	nu.Province = kits.IfEmpty(f.Province, u.Province)
-	nu.City = kits.IfEmpty(f.City, u.City)
+	nu.Province = gokits.IfEmpty(f.Province, u.Province)
+	nu.City = gokits.IfEmpty(f.City, u.City)
 
 	nu.Birthday = u.Birthday
 	if f.Birthday != "" {
@@ -213,7 +214,7 @@ func ApiSettingProfile(c *macaron.Context, f UserSettingForm, ss session.Store) 
 	if f.JobId != 0 {
 		nu.JobId = f.JobId
 	}
-	nu.Mobile = kits.IfEmpty(f.Mobile, u.Mobile)
+	nu.Mobile = gokits.IfEmpty(f.Mobile, u.Mobile)
 
 	if boot.SysSetting.Cs.AutoCreateSocialTopic {
 		if f.Province != "" {
@@ -237,7 +238,7 @@ func ApiSettingProfile(c *macaron.Context, f UserSettingForm, ss session.Store) 
 func ApiUploadAvatar(c *macaron.Context) {
 	r := core.NewRender(c)
 
-	if msg, ok := r.IsSignin(); !ok {
+	if msg, ok := r.CheckUser(); !ok {
 		c.JSON(200, comps.NewRestErrResp(-1, msg))
 		return
 	}
@@ -319,4 +320,22 @@ func ApiUploadAvatar(c *macaron.Context) {
 	json = strings.Replace(json, "/", "\\/", -1)
 	c.Resp.Header().Set("Content-Type", "text/html; charset=utf-8")
 	c.Write([]byte(json))
+}
+
+// /api/account/firstlogin/clean/
+func ApiCleanFirstLogin(c *macaron.Context) {
+	r := core.NewRender(c)
+
+	if msg, ok := r.CheckUser(); !ok {
+		c.JSON(200, comps.NewRestErrResp(-1, msg))
+		return
+	}
+
+	r.UserInfo.FirstLogin = false
+
+	if _, ok := models.NewTr().Update(&r.UserInfo.Users, "FirstLogin"); !ok {
+		r.PlainText(200, []byte("failed"))
+	} else {
+		r.PlainText(200, []byte("success"))
+	}
 }
